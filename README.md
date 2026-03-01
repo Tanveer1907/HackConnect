@@ -20,7 +20,7 @@ This platform solves these problems through verified login, skill-based collabor
 ---
 
 ## 🚀 Core Features
-- College email based authentication
+- Secure email-based authentication with validation
 - Student profile with skills & achievements
 - Hackathon discovery (categorized)
 - Team formation system

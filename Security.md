@@ -8,10 +8,12 @@
 ---
 
 ## 📧 College Email Validation
-- Only approved domains allowed
 - OTP verification (future enhancement)
+- Email format validation
+- Password hashing using bcrypt
+- JWT-based authentication
 
----
+--
 
 ## 🛡 Protection Against Attacks
 
