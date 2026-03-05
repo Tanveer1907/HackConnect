@@ -3,6 +3,11 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 
+// @route   GET api/users/profile
+// @desc    Get current user profile extracted from token
+// @access  Private
+router.get('/profile', authMiddleware, userController.getCurrentUserProfile);
+
 // @route   GET api/users/profile/:id
 // @desc    Get user profile by ID
 // @access  Private
