@@ -25,7 +25,7 @@ export default function Hackathons() {
                 </div>
                 <div style={{ display: 'flex', gap: '25px', color: '#4b5563', fontSize: '14px', fontWeight: '500', marginLeft: 'auto', marginRight: '30px' }}>
                     <span style={{ color: '#111827', borderBottom: '2px solid #2563eb', paddingBottom: '20px', marginBottom: '-20px' }}>Explore</span>
-                    <span style={{ cursor: 'pointer' }}>Find Teammates</span>
+                    <Link to="/teams" style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>Find Teammates</Link>
                     <span style={{ cursor: 'pointer' }}>Resources</span>
                     <span style={{ cursor: 'pointer' }}>My Projects</span>
                 </div>
