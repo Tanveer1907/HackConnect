@@ -1,34 +1,47 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
     const location = useLocation();
+    const { theme, toggleTheme } = useTheme();
 
     return (
-        <nav className="sticky top-0 z-50 flex items-center justify-between px-10 py-5 bg-white border-b border-gray-100 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]">
-            <Link to="/" className="flex items-center gap-2.5 font-extrabold text-[#111827] text-xl tracking-tight">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+        <nav className="sticky top-0 z-50 flex items-center justify-between px-10 py-5 bg-white/90 border-b border-gray-200 shadow-sm backdrop-blur-xl transition-colors duration-300 dark:bg-[#0f172a]/70 dark:border-white/10 dark:shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
+            <Link to="/" className="flex items-center gap-2.5 font-extrabold text-slate-900 text-xl tracking-tight dark:text-white">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_4px_10px_rgba(37,99,235,0.3)] dark:bg-blue-500 dark:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                 </div>
                 HackConnect
             </Link>
 
-            <div className="hidden lg:flex gap-8 text-sm font-semibold">
-                <Link to="/hackathons" className={`transition-colors py-1 ${location.pathname === '/hackathons' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-900'}`}>Explore Hackathons</Link>
-                <Link to="/teams" className={`transition-colors py-1 ${location.pathname === '/teams' ? 'text-[#2b3ee3] border-b-2 border-[#2b3ee3]' : 'text-gray-500 hover:text-gray-900'}`}>Find Teammates</Link>
-                <Link to="/internships" className={`transition-colors py-1 ${location.pathname === '/internships' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-900'}`}>Internships</Link>
+            <div className="hidden lg:flex gap-8 text-sm font-medium">
+                <Link to="/hackathons" className={`transition-colors py-1 ${location.pathname === '/hackathons' ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400 dark:drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}>Explore Hackathons</Link>
+                <Link to="/teams" className={`transition-colors py-1 ${location.pathname === '/teams' ? 'text-purple-600 border-b-2 border-purple-600 dark:text-purple-400 dark:border-purple-400 dark:drop-shadow-[0_0_8px_rgba(192,132,252,0.8)]' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}>Find Teammates</Link>
+                <Link to="/internships" className={`transition-colors py-1 ${location.pathname === '/internships' ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400 dark:drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]' : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]'}`}>Internships</Link>
             </div>
 
             <div className="flex items-center gap-5">
-                <button className="text-gray-400 hover:text-gray-700 relative transition-colors">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span className="absolute top-0 right-[2px] w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                <button
+                    onClick={toggleTheme}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 text-amber-500 hover:bg-slate-200 transition-colors shadow-inner dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700 dark:shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                    title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                    {theme === 'dark' ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    )}
                 </button>
-                <button className="text-gray-400 hover:text-gray-700 transition-colors">
+                <button className="text-slate-500 hover:text-slate-900 relative transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    <span className="absolute top-0 right-[2px] w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full shadow-sm dark:border-[#0f172a] dark:shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
+                </button>
+                <button className="text-slate-500 hover:text-slate-900 transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
                 </button>
                 <Link to="/profile">
-                    <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center border-2 border-white shadow-sm overflow-hidden ml-1">
+                    <div className="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center border-2 border-white shadow-sm hover:border-blue-500 transition-all duration-300 overflow-hidden ml-1 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_10px_rgba(0,0,0,0.5)] dark:hover:border-blue-500 dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">
                         <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="w-full h-full object-cover" />
                     </div>
                 </Link>
