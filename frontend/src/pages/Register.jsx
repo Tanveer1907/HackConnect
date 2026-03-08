@@ -32,14 +32,14 @@ export default function Register() {
     };
 
     return (
-        <div className="flex min-h-screen bg-white font-sans text-gray-900">
+        <div className="flex min-h-screen bg-white font-sans text-slate-900 transition-colors duration-300 dark:bg-[#0f172a] dark:text-white">
 
             {/* Left Form Section */}
             <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 md:px-20 lg:px-24 xl:px-32 py-10 relative">
                 <div className="max-w-[440px] w-full mx-auto">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 mb-12">
-                        <div className="w-8 h-8 rounded shrink-0 bg-[#2b3ee3] flex items-center justify-center">
+                    <Link to="/" className="flex items-center gap-2 font-bold text-xl text-slate-900 mb-12 dark:text-white">
+                        <div className="w-8 h-8 rounded shrink-0 bg-[#2b3ee3] flex items-center justify-center dark:bg-blue-600">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 4H20V8L16 12L20 16V20H4V16L8 12L4 8V4Z" fill="white" />
                             </svg>
@@ -49,15 +49,15 @@ export default function Register() {
 
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight mb-2">Create your account</h1>
-                        <p className="text-gray-500 mb-8 text-sm">Join the community of student builders today.</p>
+                        <p className="text-slate-500 mb-8 text-sm dark:text-slate-400">Join the community of student builders today.</p>
 
                         {/* Social Buttons */}
                         <div className="flex gap-4 mb-6">
-                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-slate-700 hover:bg-gray-50 transition dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">
                                 <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-4 h-4" />
                                 Google
                             </button>
-                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-slate-700 hover:bg-gray-50 transition dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                                 </svg>
@@ -66,16 +66,16 @@ export default function Register() {
                         </div>
 
                         <div className="relative flex items-center py-2 mb-6">
-                            <div className="flex-grow border-t border-gray-100"></div>
-                            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-medium">or continue with email</span>
-                            <div className="flex-grow border-t border-gray-100"></div>
+                            <div className="flex-grow border-t border-gray-100 dark:border-white/10"></div>
+                            <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium dark:text-slate-500">or continue with email</span>
+                            <div className="flex-grow border-t border-gray-100 dark:border-white/10"></div>
                         </div>
 
-                        {error && <div className="mb-4 text-sm text-red-600 font-medium bg-red-50 p-3 rounded-lg border border-red-100">{error}</div>}
+                        {error && <div className="mb-4 text-sm text-red-600 font-medium bg-red-50 p-3 rounded-lg border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">{error}</div>}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5">Full Name</label>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Full Name</label>
                                 <input
                                     name="name"
                                     type="text"
@@ -83,12 +83,12 @@ export default function Register() {
                                     placeholder="Alex Rivera"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#2b3ee3] focus:ring-1 focus:ring-[#2b3ee3] transition text-sm placeholder-gray-400"
+                                    className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 mb-1.5">College Email</label>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">College Email</label>
                                 <input
                                     name="email"
                                     type="email"
@@ -96,13 +96,13 @@ export default function Register() {
                                     placeholder="name@college.edu"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#2b3ee3] focus:ring-1 focus:ring-[#2b3ee3] transition text-sm placeholder-gray-400"
+                                    className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
                                 />
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Password</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Password</label>
                                     <div className="relative">
                                         <input
                                             name="password"
@@ -111,16 +111,16 @@ export default function Register() {
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={handleChange}
-                                            className="w-full pl-4 pr-10 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#2b3ee3] focus:ring-1 focus:ring-[#2b3ee3] transition text-sm placeholder-gray-400 font-mono"
+                                            className="w-full pl-4 pr-10 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 font-mono dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
                                         />
-                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-gray-700 mb-1.5">Confirm Password</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Confirm Password</label>
                                     <input
                                         name="confirmPassword"
                                         type="password"
@@ -128,28 +128,28 @@ export default function Register() {
                                         placeholder="••••••••"
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-[#2b3ee3] focus:ring-1 focus:ring-[#2b3ee3] transition text-sm placeholder-gray-400 font-mono"
+                                        className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 font-mono dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
                                     />
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-2 mt-4 mb-6">
-                                <input type="checkbox" className="w-4 h-4 border-gray-300 rounded text-[#2b3ee3] focus:ring-[#2b3ee3]" required />
-                                <span className="text-xs text-gray-500">
-                                    I agree to the <a href="#" className="text-[#2b3ee3] hover:underline">Terms of Service</a> and <a href="#" className="text-[#2b3ee3] hover:underline">Privacy Policy</a>.
+                                <input type="checkbox" className="w-4 h-4 border-gray-300 rounded text-blue-600 focus:ring-blue-600 dark:border-white/20 dark:bg-slate-800" required />
+                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    I agree to the <a href="#" className="text-blue-600 hover:underline dark:text-blue-400">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline dark:text-blue-400">Privacy Policy</a>.
                                 </span>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full py-3 px-4 rounded-full text-sm font-bold text-white bg-[#2b3ee3] hover:bg-[#202eb8] shadow-lg shadow-blue-600/20 transition-all hover:shadow-xl"
+                                className="w-full py-3 px-4 rounded-full text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all hover:shadow-md dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]"
                             >
                                 Create Account
                             </button>
                         </form>
 
-                        <div className="text-center mt-6 text-sm text-gray-500 font-medium">
-                            Already have an account? <Link to="/login" className="text-[#2b3ee3] font-bold hover:underline">Log in</Link>
+                        <div className="text-center mt-6 text-sm text-slate-500 font-medium dark:text-slate-400">
+                            Already have an account? <Link to="/login" className="text-blue-600 font-bold hover:underline dark:text-blue-400">Log in</Link>
                         </div>
                     </div>
                 </div>
