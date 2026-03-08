@@ -1,16 +1,37 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api';
 
 export default function Login() {
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Login Submitted:', formData);
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await loginUser(formData);
+            const { token } = response.data;
+
+            // Store JWT in localStorage
+            localStorage.setItem('token', token);
+
+            // Redirect to dashboard
+            navigate('/dashboard');
+        } catch (err) {
+            console.error('Login Failed:', err);
+            setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -19,6 +40,12 @@ export default function Login() {
                 <div className="auth-form-section">
                     <h2 className="text-3xl font-extrabold mb-2.5 text-slate-900 dark:text-white">Welcome back</h2>
                     <p className="text-slate-500 mb-10 dark:text-slate-400">Enter your credentials to access your account.</p>
+
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium dark:bg-red-900/20 dark:border-red-500/30 dark:text-red-400">
+                            {error}
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                         <div>
@@ -55,8 +82,16 @@ export default function Login() {
                             </div>
                         </div>
 
-                        <button type="submit" className="btn-primary p-3.5 text-base flex justify-center items-center gap-2.5 dark:shadow-[0_4px_15px_rgba(59,130,246,0.3)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                            Log In <span>→</span>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`btn-primary p-3.5 text-base flex justify-center items-center gap-2.5 dark:shadow-[0_4px_15px_rgba(59,130,246,0.3)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        >
+                            {loading ? (
+                                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
+                            ) : (
+                                <>Log In <span>→</span></>
+                            )}
                         </button>
                     </form>
 

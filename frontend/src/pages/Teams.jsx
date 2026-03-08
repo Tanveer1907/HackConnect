@@ -1,140 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeamCard from '../components/TeamCard';
+import { getAllUsers } from '../services/api';
 
 export default function Teams() {
     const [selectedUser, setSelectedUser] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // Dummy Data replicating the screenshot UI
-    const dummyTalents = [
-        {
-            id: "a1",
-            name: "Aarav Sharma",
-            university: "IIT Delhi",
-            major: "Computer Science",
-            matchPercentage: 95,
-            skills: [
-                { name: "React", level: "Adv." },
-                { name: "Python", level: "Int." },
-                { name: "FastAPI" }
-            ],
-            roleRequirement: "Need Backend Developer",
-            hackathons: 8,
-            projects: 12,
-            interests: ["AIHackathon", "OpenSource"]
-        },
-        {
-            id: "s2",
-            name: "Priya Verma",
-            university: "IIT Bombay",
-            major: "UI/UX Design",
-            matchPercentage: 88,
-            skills: [
-                { name: "Figma", level: "Adv." },
-                { name: "Tailwind" },
-                { name: "Prototyping" }
-            ],
-            roleRequirement: "Need Frontend Dev",
-            hackathons: 5,
-            projects: 6,
-            interests: ["DesignJam", "Fintech"]
-        },
-        {
-            id: "m3",
-            name: "Rohan Mehta",
-            university: "BITS Pilani",
-            major: "Data Science",
-            matchPercentage: 92,
-            skills: [
-                { name: "TensorFlow", level: "Adv." },
-                { name: "PyTorch", level: "Int." },
-                { name: "AWS" }
-            ],
-            roleRequirement: "Need ML Engineer",
-            hackathons: 11,
-            projects: 15,
-            interests: ["MachineLearning", "DataForGood"]
-        },
-        {
-            id: "e4",
-            name: "Ananya Gupta",
-            university: "VIT Vellore",
-            major: "Software Engineering",
-            matchPercentage: 85,
-            skills: [
-                { name: "Node.js", level: "Adv." },
-                { name: "Express" },
-                { name: "MongoDB", level: "Int." }
-            ],
-            roleRequirement: "Need UI Designer",
-            hackathons: 4,
-            projects: 8,
-            interests: ["Web3", "EduTech"]
-        },
-        {
-            id: "a5",
-            name: "Aditya Kapoor",
-            university: "NIT Trichy",
-            major: "Cybersecurity",
-            matchPercentage: 94,
-            skills: [
-                { name: "Ethical Hacking", level: "Adv." },
-                { name: "Linux", level: "Adv." },
-                { name: "Python", level: "Int." }
-            ],
-            roleRequirement: "Need App Sec Pro",
-            hackathons: 6,
-            projects: 9,
-            interests: ["CTF", "Security"]
-        },
-        {
-            id: "s6",
-            name: "Sneha Iyer",
-            university: "IIIT Hyderabad",
-            major: "AI & Machine Learning",
-            matchPercentage: 89,
-            skills: [
-                { name: "OpenCV", level: "Adv." },
-                { name: "C++", level: "Int." },
-                { name: "Keras" }
-            ],
-            roleRequirement: "Need Data Scientist",
-            hackathons: 7,
-            projects: 11,
-            interests: ["ComputerVision", "Robotics"]
-        },
-        {
-            id: "r7",
-            name: "Rahul Nair",
-            university: "DTU",
-            major: "Cloud Computing",
-            matchPercentage: 91,
-            skills: [
-                { name: "Docker", level: "Adv." },
-                { name: "Kubernetes", level: "Int." },
-                { name: "Azure", level: "Int." }
-            ],
-            roleRequirement: "Need DevOps Engineer",
-            hackathons: 9,
-            projects: 14,
-            interests: ["CloudNative", "Scalability"]
-        },
-        {
-            id: "k8",
-            name: "Kavya Reddy",
-            university: "NSUT",
-            major: "Blockchain Development",
-            matchPercentage: 86,
-            skills: [
-                { name: "Solidity", level: "Adv." },
-                { name: "Web3.js", level: "Int." },
-                { name: "Smart Contracts" }
-            ],
-            roleRequirement: "Need Frontend Dev",
-            hackathons: 3,
-            projects: 7,
-            interests: ["DeFi", "Crypto"]
-        }
-    ];
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const response = await getAllUsers();
+                // Map the backend user model to the format expected by TeamCard
+                // Provide default values if properties like university or major are missing
+                const formattedUsers = response.data.map(user => ({
+                    id: user._id,
+                    name: user.name,
+                    university: user.university || "University Not Specified",
+                    major: user.major || "Major Not Specified",
+                    matchPercentage: Math.floor(Math.random() * (99 - 70 + 1)) + 70, // random match % for now
+                    skills: user.skills ? user.skills.map(skill => ({ name: skill })) : [],
+                    roleRequirement: user.bio || "Looking for a team",
+                    hackathons: user.hackathonsParticipated?.length || 0,
+                    projects: 0,
+                    interests: []
+                }));
+                setUsers(formattedUsers);
+            } catch (err) {
+                console.error("Failed to fetch users:", err);
+                setError("Failed to load talents. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUsers();
+    }, []);
 
     return (
         <div className="flex flex-col flex-1 font-sans text-slate-800 overflow-x-hidden transition-colors duration-300 dark:text-slate-200">
@@ -210,15 +112,25 @@ export default function Teams() {
 
                 {/* PROFILE CARDS GRID */}
                 <section className="mx-auto max-w-[1400px] px-6 md:px-12 mb-16">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {dummyTalents.map((talent) => (
-                            <TeamCard
-                                key={talent.id}
-                                filterMatched={talent}
-                                onInviteClick={(user) => setSelectedUser(user)}
-                            />
-                        ))}
-                    </div>
+                    {loading ? (
+                        <div className="flex justify-center items-center py-20">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : error ? (
+                        <div className="text-center py-20 text-red-500 font-medium">{error}</div>
+                    ) : users.length === 0 ? (
+                        <div className="text-center py-20 text-slate-500 font-medium">No talents found.</div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {users.map((talent) => (
+                                <TeamCard
+                                    key={talent.id}
+                                    filterMatched={talent}
+                                    onInviteClick={(user) => setSelectedUser(user)}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 {/* VIEW MORE TALENTS */}

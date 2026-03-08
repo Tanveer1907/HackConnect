@@ -9,25 +9,31 @@ export default function Profile() {
         const fetchProfile = async () => {
             try {
                 const res = await getUserProfile();
-                setProfile(res.data);
+                const u = res.data;
+                setProfile({
+                    name: u.name,
+                    email: u.email,
+                    role: u.bio ? 'Student' : 'Full Stack Developer', // fallback
+                    university: u.university || 'University Not Specified',
+                    location: u.location || 'Location Not Specified',
+                    joined: 'Joined Recently',
+                    bio: u.bio || 'No bio provided.',
+                    skills: u.skills ? u.skills.map(s => ({ name: s, level: 80, type: 'Intermediate' })) : [],
+                    tags: ['React', 'Node.js', 'MongoDB'] // default tags
+                });
             } catch (err) {
                 console.error("Failed to fetch profile", err);
-                // Fallback for UI demonstration
+                // Set minimal fallback 
                 setProfile({
-                    name: 'Aarav Sharma',
-                    email: 'aarav.sharma@hackconnect.in',
-                    role: 'Full Stack Developer',
-                    university: 'Computer Science @ IIT Delhi',
-                    location: 'New Delhi, India',
-                    joined: 'Joined Aug 2024',
-                    bio: 'Passionate about building scalable tech solutions that solve real-world problems in India. I enjoy working on projects related to AI, fintech, and digital platforms that improve accessibility and efficiency. I have a strong foundation in data structures and algorithms and regularly participate in hackathons and coding competitions. When I\'m not coding, I enjoy playing cricket, exploring new technologies, and collaborating with other developers on innovative ideas.',
-                    skills: [
-                        { name: 'JavaScript / TypeScript', level: 90, type: 'Expert' },
-                        { name: 'React & Next.js', level: 80, type: 'Advanced' },
-                        { name: 'Python (Django/Flask)', level: 75, type: 'Advanced' },
-                        { name: 'UI/UX Design', level: 60, type: 'Intermediate' }
-                    ],
-                    tags: ['PostgreSQL', 'Docker', 'AWS', 'GraphQL', 'Tailwind CSS']
+                    name: 'Guest User',
+                    email: 'No Email',
+                    role: 'Visitor',
+                    university: 'N/A',
+                    location: 'N/A',
+                    joined: 'Today',
+                    bio: 'Please log in to view your profile.',
+                    skills: [],
+                    tags: []
                 });
             }
         };

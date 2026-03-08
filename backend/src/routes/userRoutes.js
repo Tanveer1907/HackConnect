@@ -14,4 +14,9 @@ router.get('/profile', authMiddleware, userController.getCurrentUserProfile);
 // Using authMiddleware to protect the route (optional based on requirements, but generally good for profiles)
 router.get('/profile/:id', authMiddleware, userController.getUserProfile);
 
+// @route   GET api/users
+// @desc    Get all users
+// @access  Public
+router.get('/', userController.getAllUsers);
+
 module.exports = router;
