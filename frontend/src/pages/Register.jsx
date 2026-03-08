@@ -1,45 +1,90 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { registerUser } from '../services/api';
+import { FcGoogle } from 'react-icons/fc';
+import { FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
 export default function Register() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
-    const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const toggleConfirmPasswordVisibility = () => {
+        setShowConfirmPassword(!showConfirmPassword);
+    };
+
+    const validateForm = () => {
+        if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+            toast.error("All fields are required.");
+            return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            toast.error("Please enter a valid email address.");
+            return false;
+        }
+        if (formData.password.length < 8) {
+            toast.error("Password must be at least 8 characters long.");
+            return false;
+        }
+        if (formData.password !== formData.confirmPassword) {
+            toast.error("Passwords don't match.");
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (formData.password !== formData.confirmPassword) {
-            setError("Passwords don't match");
-            return;
-        }
+
+        if (!validateForm()) return;
+
+        setLoading(true);
         try {
             await registerUser({
                 name: formData.name,
                 email: formData.email,
                 password: formData.password
             });
+            toast.success("Account created successfully!");
             navigate('/login');
         } catch (err) {
             console.error("Registration failed", err);
+            toast.error(err.response?.data?.message || 'Failed to create account.');
             // Fallback for UI testing
-            navigate('/login');
+            // navigate('/login');
+        } finally {
+            setLoading(false);
         }
     };
 
-    return (
-        <div className="flex min-h-screen bg-white font-sans text-slate-900 transition-colors duration-300 dark:bg-[#0f172a] dark:text-white">
+    const handleGoogleLogin = () => {
+        window.location.href = 'http://localhost:5000/api/auth/google';
+    };
 
+    const handleGithubLogin = () => {
+        window.location.href = 'http://localhost:5000/api/auth/github';
+    };
+
+    return (
+        <div className="flex min-h-screen font-sans text-white" style={{ backgroundColor: '#13151a' }}>
             {/* Left Form Section */}
-            <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 md:px-20 lg:px-24 xl:px-32 py-10 relative">
-                <div className="max-w-[440px] w-full mx-auto">
+            <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 md:px-20 lg:px-24 xl:px-32 py-6 relative">
+                <div className="max-w-[400px] w-full mx-auto">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2 font-bold text-xl text-slate-900 mb-12 dark:text-white">
-                        <div className="w-8 h-8 rounded shrink-0 bg-[#2b3ee3] flex items-center justify-center dark:bg-blue-600">
+                    <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white mb-8">
+                        <div className="w-8 h-8 rounded shrink-0 bg-blue-600 flex items-center justify-center">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M4 4H20V8L16 12L20 16V20H4V16L8 12L4 8V4Z" fill="white" />
                             </svg>
@@ -49,169 +94,208 @@ export default function Register() {
 
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight mb-2">Create your account</h1>
-                        <p className="text-slate-500 mb-8 text-sm dark:text-slate-400">Join the community of student builders today.</p>
+                        <p className="text-violet-500/80 mb-6 text-sm font-medium">Join the community of student builders today.</p>
 
                         {/* Social Buttons */}
-                        <div className="flex gap-4 mb-6">
-                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-slate-700 hover:bg-gray-50 transition dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">
-                                <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-4 h-4" />
+                        <div className="flex gap-4 mb-5">
+                            <button onClick={handleGoogleLogin} type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-slate-700/50 rounded-full bg-slate-800/20 text-sm font-semibold text-white hover:bg-slate-800 transition">
+                                <FcGoogle className="w-4 h-4" />
                                 Google
                             </button>
-                            <button type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-gray-200 rounded-full bg-white text-sm font-semibold text-slate-700 hover:bg-gray-50 transition dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-                                </svg>
+                            <button onClick={handleGithubLogin} type="button" className="flex-1 flex justify-center items-center gap-2 py-2.5 px-4 border border-slate-700/50 rounded-full bg-slate-800/20 text-sm font-semibold text-white hover:bg-slate-800 transition">
+                                <FaGithub className="w-4 h-4" />
                                 GitHub
                             </button>
                         </div>
 
                         <div className="relative flex items-center py-2 mb-6">
-                            <div className="flex-grow border-t border-gray-100 dark:border-white/10"></div>
-                            <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium dark:text-slate-500">or continue with email</span>
-                            <div className="flex-grow border-t border-gray-100 dark:border-white/10"></div>
+                            <div className="flex-grow border-t mt-1 border-[#1a1d2d]"></div>
+                            <span className="flex-shrink-0 mx-4 text-slate-500 text-[10px] font-bold uppercase py-1 px-4 tracking-widest bg-[#151722] rounded-full border border-[#1a1d2d]">or continue with email</span>
+                            <div className="flex-grow border-t mt-1 border-[#1a1d2d]"></div>
                         </div>
-
-                        {error && <div className="mb-4 text-sm text-red-600 font-medium bg-red-50 p-3 rounded-lg border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 dark:text-red-400">{error}</div>}
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Full Name</label>
+                                <label className="block text-xs font-bold text-slate-300 mb-1.5" htmlFor="name">Full Name</label>
                                 <input
+                                    id="name"
                                     name="name"
                                     type="text"
                                     required
+                                    aria-label="Full Name"
                                     placeholder="Alex Rivera"
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                                    className="w-full px-4 py-3 bg-[#1a1d2d] border border-transparent rounded-2xl focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition text-sm placeholder-slate-500 text-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">College Email</label>
+                                <label className="block text-xs font-bold text-slate-300 mb-1.5" htmlFor="email">College Email</label>
                                 <input
+                                    id="email"
                                     name="email"
                                     type="email"
                                     required
+                                    aria-label="College Email"
                                     placeholder="name@college.edu"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                                    className="w-full px-4 py-3 bg-[#1a1d2d] border border-transparent rounded-2xl focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition text-sm placeholder-slate-500 text-white"
                                 />
                             </div>
 
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Password</label>
+                                    <label className="block text-xs font-bold text-slate-300 mb-1.5" htmlFor="password">Password</label>
                                     <div className="relative">
+                                        <span className="absolute left-4 top-3.5 text-slate-400">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        </span>
                                         <input
+                                            id="password"
                                             name="password"
-                                            type="password"
+                                            type={showPassword ? "text" : "password"}
                                             required
+                                            aria-label="Password"
                                             placeholder="••••••••"
                                             value={formData.password}
                                             onChange={handleChange}
-                                            className="w-full pl-4 pr-10 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 font-mono dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
+                                            className="w-full pl-11 pr-10 py-3 bg-[#1a1d2d] border border-transparent rounded-2xl focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition text-sm placeholder-slate-500 text-white font-mono"
                                         />
-                                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white"
+                                            onClick={togglePasswordVisibility}
+                                        >
+                                            {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                                        </button>
                                     </div>
                                 </div>
 
                                 <div className="flex-1">
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5 dark:text-slate-300">Confirm Password</label>
-                                    <input
-                                        name="confirmPassword"
-                                        type="password"
-                                        required
-                                        placeholder="••••••••"
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2.5 border border-gray-200 bg-white rounded-xl focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition text-sm placeholder-slate-400 font-mono dark:bg-slate-800/50 dark:border-white/20 dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500"
-                                    />
+                                    <label className="block text-xs font-bold text-slate-300 mb-1.5" htmlFor="confirmPassword">Confirm</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-3.5 text-slate-400">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        </span>
+                                        <input
+                                            id="confirmPassword"
+                                            name="confirmPassword"
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            required
+                                            aria-label="Confirm Password"
+                                            placeholder="••••••••"
+                                            value={formData.confirmPassword}
+                                            onChange={handleChange}
+                                            className="w-full pl-11 pr-10 py-3 bg-[#1a1d2d] border border-transparent rounded-2xl focus:outline-none focus:border-violet-600 focus:ring-1 focus:ring-violet-600 transition text-sm placeholder-slate-500 text-white font-mono"
+                                        />
+                                        <button
+                                            type="button"
+                                            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white"
+                                            onClick={toggleConfirmPasswordVisibility}
+                                        >
+                                            {showConfirmPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-4 mb-6">
-                                <input type="checkbox" className="w-4 h-4 border-gray-300 rounded text-blue-600 focus:ring-blue-600 dark:border-white/20 dark:bg-slate-800" required />
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                    I agree to the <a href="#" className="text-blue-600 hover:underline dark:text-blue-400">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline dark:text-blue-400">Privacy Policy</a>.
+                            <div className="flex items-center gap-2 pt-2 pb-4">
+                                <input id="terms" type="checkbox" className="w-4 h-4 border-gray-600 rounded text-violet-600 focus:ring-violet-600 bg-transparent accent-violet-600" required />
+                                <span className="text-xs text-slate-400">
+                                    I agree to the <a href="#" className="text-violet-500 font-bold hover:text-violet-400 hover:underline">Terms of Service</a> and <a href="#" className="text-violet-500 font-bold hover:text-violet-400 hover:underline">Privacy Policy</a>
                                 </span>
                             </div>
 
                             <button
                                 type="submit"
-                                className="w-full py-3 px-4 rounded-full text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all hover:shadow-md dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]"
+                                disabled={loading}
+                                className={`w-full py-3.5 px-4 rounded-full text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 shadow-lg shadow-violet-600/30 transition-all ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                             >
-                                Create Account
+                                {loading ? (
+                                    <div className="flex items-center justify-center gap-2">
+                                        <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                                        Creating Account...
+                                    </div>
+                                ) : (
+                                    "Create Account"
+                                )}
                             </button>
                         </form>
 
-                        <div className="text-center mt-6 text-sm text-slate-500 font-medium dark:text-slate-400">
-                            Already have an account? <Link to="/login" className="text-blue-600 font-bold hover:underline dark:text-blue-400">Log in</Link>
+                        <div className="text-center mt-6 text-sm text-slate-400 font-medium">
+                            Already have an account? <Link to="/login" className="text-violet-500 font-bold hover:text-violet-400 transition-colors">Log In</Link>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Right Image/Banner Section */}
-            <div className="hidden lg:flex lg:flex-1 relative bg-[#2b3ee3] overflow-hidden items-center justify-center p-12">
-                {/* Dot pattern background */}
-                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '32px 32px' }}></div>
+            {/* Right Banner Section */}
+            <div className="hidden lg:flex lg:flex-1 relative items-center justify-center p-6 bg-[#13151a]">
+                <div className="w-full h-[90%] max-h-[700px] rounded-[28px] overflow-hidden relative border border-slate-800" style={{ backgroundColor: '#1c1e2d' }}>
+                    <div className="absolute inset-x-0 inset-y-0 bg-gradient-to-b from-[#22253a] to-[#1c1e2d]"></div>
 
-                <div className="relative z-10 max-w-lg w-full">
-                    {/* Glassmorphism Card */}
-                    <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 text-center mb-12 shadow-2xl">
-                        <div className="flex justify-center -space-x-3 mb-6">
-                            <div className="w-12 h-12 rounded-full border-2 border-[#455ce9] overflow-hidden bg-gray-200">
-                                <img src="https://i.pravatar.cc/150?u=a" alt="User 1" />
-                            </div>
-                            <div className="w-12 h-12 rounded-full border-2 border-[#455ce9] overflow-hidden bg-gray-300">
-                                <img src="https://i.pravatar.cc/150?u=b" alt="User 2" />
-                            </div>
-                            <div className="w-12 h-12 rounded-full border-2 border-[#455ce9] overflow-hidden bg-gray-400">
-                                <img src="https://i.pravatar.cc/150?u=c" alt="User 3" />
-                            </div>
-                            <div className="w-12 h-12 rounded-full bg-white border-2 border-[#455ce9] flex items-center justify-center text-xs font-bold text-[#2b3ee3]">
-                                +24k
-                            </div>
+                    <div className="relative z-10 p-10 h-full flex flex-col justify-center max-w-lg mx-auto">
+                        <div className="inline-flex items-center bg-violet-600/20 border border-violet-500/30 rounded-full px-4 py-1.5 mb-6 w-max">
+                            <span className="text-[10px] font-bold text-violet-400 uppercase tracking-widest">New Cohort Starting</span>
                         </div>
 
-                        <h2 className="text-3xl font-bold text-white mb-4 leading-tight">Join 24k+ students building the future</h2>
-                        <p className="text-blue-100/90 text-sm leading-relaxed">
-                            Connect with developers, designers, and visionaries from top universities. Find your next co-founder, join hackathons, and ship projects that matter.
+                        <h2 className="text-[2rem] xl:text-[2.25rem] font-extrabold text-white mb-5 leading-[1.15]">Join 24k+ students building the future</h2>
+                        <p className="text-slate-300 text-sm xl:text-base leading-relaxed mb-10">
+                            The world's largest ecosystem for student innovators. Connect with top-tier developers and award-winning designers.
                         </p>
-                    </div>
 
-                    {/* Features Grid */}
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex flex-shrink-0 items-center justify-center text-white">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        {/* Features List */}
+                        <div className="space-y-4 mb-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                </div>
+                                <span className="text-slate-100 text-sm font-medium">Find your dream team</span>
                             </div>
-                            <span className="text-white text-sm font-medium leading-tight">Find your dream team</span>
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                </div>
+                                <span className="text-slate-100 text-sm font-medium">Exclusive hackathons</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                                </div>
+                                <span className="text-slate-100 text-sm font-medium">Showcase projects</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="w-8 h-8 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-500 border border-violet-500/20">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                                </div>
+                                <span className="text-slate-100 text-sm font-medium">Earn tech credentials</span>
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex flex-shrink-0 items-center justify-center text-white">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        {/* Community Strength */}
+                        <div className="flex items-center justify-between border-t border-slate-700/50 pt-6 mt-auto">
+                            <div className="flex -space-x-3">
+                                <div className="w-10 h-10 rounded-full border-2 border-[#1c1e2d] overflow-hidden bg-gray-200">
+                                    <img src="https://i.pravatar.cc/150?u=a" alt="User 1" />
+                                </div>
+                                <div className="w-10 h-10 rounded-full border-2 border-[#1c1e2d] overflow-hidden bg-gray-300">
+                                    <img src="https://i.pravatar.cc/150?u=b" alt="User 2" />
+                                </div>
+                                <div className="w-10 h-10 rounded-full border-2 border-[#1c1e2d] overflow-hidden bg-gray-400">
+                                    <img src="https://i.pravatar.cc/150?u=c" alt="User 3" />
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-blue-600 border-2 border-[#1c1e2d] flex items-center justify-center text-[10px] font-bold text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]">
+                                    +24k
+                                </div>
                             </div>
-                            <span className="text-white text-sm font-medium leading-tight">Exclusive hackathons</span>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex flex-shrink-0 items-center justify-center text-white">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                            <div className="text-right">
+                                <div className="text-[10px] font-bold text-white uppercase tracking-wider mb-1">Community Strength</div>
+                                <div className="text-xs text-slate-400">Growing 12% monthly</div>
                             </div>
-                            <span className="text-white text-sm font-medium leading-tight">Showcase projects</span>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex flex-shrink-0 items-center justify-center text-white">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                            </div>
-                            <span className="text-white text-sm font-medium leading-tight">Earn tech credentials</span>
                         </div>
                     </div>
                 </div>

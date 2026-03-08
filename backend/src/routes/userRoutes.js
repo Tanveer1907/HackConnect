@@ -19,4 +19,9 @@ router.get('/profile/:id', authMiddleware, userController.getUserProfile);
 // @access  Public
 router.get('/', userController.getAllUsers);
 
+// @route   PUT api/users/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', authMiddleware, userController.updateUserProfile);
+
 module.exports = router;

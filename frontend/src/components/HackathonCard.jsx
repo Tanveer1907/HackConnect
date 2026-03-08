@@ -8,8 +8,8 @@ export default function HackathonCard({ hackathon }) {
         <Link to={`/hackathon/${hackathon._id || hackathon.id || 1}`} className="block bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-300 hover:-translate-y-1 group dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
             <div className="h-44 bg-gray-100 relative dark:bg-slate-800">
                 <img
-                    src={hackathon.image || `https://images.unsplash.com/photo-${1500000000000 + (hackathon.id || 1) * 10}?auto=format&fit=crop&w=600&q=80`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80"
+                    src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80"
                     alt={hackathon.title}
                 />
                 <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-800 border border-gray-200 hover:bg-gray-50 transition hover:scale-110 shadow-sm dark:bg-black/40 dark:backdrop-blur-md dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">

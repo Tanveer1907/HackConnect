@@ -17,44 +17,49 @@ const User = require('./src/models/User');
 
 const hackathons = [
     {
-        title: "AI Innovation India",
-        domain: "AI/ML",
+        title: "Global Game Jam",
+        domain: "Game Development",
         mode: "ONLINE",
-        deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         teamSize: 4,
-        description: "Build the future of generative AI. Solve real-world problems using the latest AI models."
+        description: "Build the future of gaming. Solve real-world architectural problems using the latest engines.",
+        image: "/assets/hackathons/global-game-jam.jpg"
     },
     {
-        title: "CyberShield India CTF",
+        title: "Cyber Security Hackathon",
         domain: "Cybersecurity",
         mode: "HYBRID",
-        deadline: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours from now
+        deadline: new Date(Date.now() + 12 * 60 * 60 * 1000),
         teamSize: 3,
-        description: "The ultimate CTF competition for university students. Secure the flag and win prizes."
+        description: "The ultimate CTF competition for university students. Secure the flag and win prizes.",
+        image: "/assets/hackathons/cybersecurity-hack.jpg"
     },
     {
-        title: "FinTech India Hackathon",
-        domain: "Finance",
+        title: "FinTech Innovation Hackathon",
+        domain: "Financial Technology",
         mode: "OFFLINE",
-        deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+        deadline: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         teamSize: 5,
-        description: "Focus on UI/UX and frontend architecture. Create scalable design systems for fintech."
+        description: "Focus on UI/UX and frontend architecture. Create scalable design systems for fintech.",
+        image: "/assets/hackathons/fintech-hack.jpg"
     },
     {
-        title: "GreenTech India Summit",
-        domain: "Sustainability",
+        title: "Health Hack",
+        domain: "Healthcare",
         mode: "ONLINE",
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
         teamSize: 4,
-        description: "Innovating for a sustainable future. Develop solutions for climate change and renewable energy."
+        description: "Innovating for a sustainable future. Develop solutions for physical health and medicine tracking.",
+        image: "/assets/hackathons/health-hack.jpg"
     },
     {
-        title: "Web3 India Challenge",
-        domain: "Blockchain",
+        title: "EdTech Innovation Hackathon",
+        domain: "Education Technology",
         mode: "OFFLINE",
         deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         teamSize: 4,
-        description: "Contribute to major open source projects and earn rewards. A month-long web3 event."
+        description: "Contribute to major open source projects and earn rewards. A month-long learning event.",
+        image: "/assets/hackathons/edtech-hack.jpg"
     }
 ];
 

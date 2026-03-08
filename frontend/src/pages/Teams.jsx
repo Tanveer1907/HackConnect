@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers } from '../services/api';
+import { getAllUsers, getUserProfile } from '../services/api';
 
 export default function Teams() {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -12,15 +12,29 @@ export default function Teams() {
         const fetchUsers = async () => {
             try {
                 const response = await getAllUsers();
+                let currentUserId = null;
+
+                if (localStorage.getItem('token')) {
+                    try {
+                        const profileObj = await getUserProfile();
+                        currentUserId = profileObj.data._id;
+                    } catch (e) {
+                        // ignore 
+                    }
+                }
+
                 // Map the backend user model to the format expected by TeamCard
-                // Provide default values if properties like university or major are missing
-                const formattedUsers = response.data.map(user => ({
+                // Filter out the logged-in user so they don't appear in the talent list
+                const filteredUsers = currentUserId ? response.data.filter(u => u._id !== currentUserId) : response.data;
+
+                const formattedUsers = filteredUsers.map(user => ({
                     id: user._id,
                     name: user.name,
+                    profileImage: user.profileImage || "",
                     university: user.university || "University Not Specified",
-                    major: user.major || "Major Not Specified",
+                    major: user.major || "Role Not Specified",
                     matchPercentage: Math.floor(Math.random() * (99 - 70 + 1)) + 70, // random match % for now
-                    skills: user.skills ? user.skills.map(skill => ({ name: skill })) : [],
+                    skills: user.skills ? user.skills.map(skill => ({ name: skill.name || skill })) : [],
                     roleRequirement: user.bio || "Looking for a team",
                     hackathons: user.hackathonsParticipated?.length || 0,
                     projects: 0,
@@ -197,12 +211,18 @@ export default function Teams() {
                             {/* Profile Preview */}
                             <div className="bg-slate-50 border border-gray-200 rounded-2xl p-4 flex items-center gap-4 mb-8 relative overflow-hidden group dark:bg-white/5 dark:border-white/10">
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 dark:from-blue-500/10"></div>
-                                <div className="w-12 h-12 rounded-full border-2 border-white shadow-sm overflow-hidden shrink-0 relative z-10 dark:border-slate-700 dark:shadow-[0_0_10px_rgba(0,0,0,0.5)]">
-                                    <img src={`https://i.pravatar.cc/150?u=${selectedUser.id}`} alt="User" className="w-full h-full object-cover" />
+                                <div className="w-12 h-12 rounded-full border-2 border-white shadow-sm overflow-hidden shrink-0 relative z-10 dark:border-slate-700 dark:shadow-[0_0_10px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                                    {selectedUser.profileImage ? (
+                                        <img src={selectedUser.profileImage} alt="User" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full bg-gradient-to-br from-[#4F46E5] to-[#3B82F6] flex items-center justify-center text-[22px] font-extrabold text-white uppercase">
+                                            {selectedUser.name ? selectedUser.name.charAt(0) : 'U'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="relative z-10">
                                     <h3 className="font-bold text-slate-900 text-[15px] leading-tight group-hover:text-blue-600 transition-colors dark:text-white dark:group-hover:text-blue-400">{selectedUser.name}</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-slate-400">{selectedUser.university} • {selectedUser.major.includes('Science') ? 'CS' : 'Design'}</p>
+                                    <p className="text-[13px] text-slate-500 dark:text-slate-400">{selectedUser.university} • {selectedUser.major && selectedUser.major.includes('Science') ? 'CS' : 'Developer'}</p>
                                 </div>
                             </div>
 
@@ -225,7 +245,7 @@ export default function Teams() {
                                 <textarea
                                     rows="4"
                                     className="w-full p-4 bg-white border border-gray-300 rounded-xl text-[13.5px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none leading-relaxed shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 dark:shadow-inner"
-                                    defaultValue={`Hey ${selectedUser.name.split(' ')[0]}! I saw you have great experience with ${selectedUser.skills[0].name}. We are looking for a teammate who can handle the ${selectedUser.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${selectedUser.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`}
+                                    defaultValue={`Hey ${selectedUser.name?.split(' ')[0]}! I saw you have great experience with ${selectedUser.skills && selectedUser.skills.length > 0 ? selectedUser.skills[0].name : 'your tech stack'}. We are looking for a teammate who can handle the ${selectedUser.major && selectedUser.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${selectedUser.major && selectedUser.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`}
                                 ></textarea>
                             </div>
 

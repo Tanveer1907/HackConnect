@@ -11,8 +11,14 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                 {/* Header: Profile and Info Stack */}
                 <div className="flex items-start gap-4 mb-6">
                     {/* Left: Avatar */}
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 mt-0.5 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                        <img src={`https://i.pravatar.cc/150?u=${filterMatched.id}`} alt={filterMatched.name} className="w-full h-full object-cover" />
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 mt-0.5 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                        {filterMatched.profileImage ? (
+                            <img src={filterMatched.profileImage} alt={filterMatched.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-[#4F46E5] to-[#3B82F6] flex items-center justify-center text-lg md:text-xl font-bold text-white uppercase">
+                                {filterMatched.name ? filterMatched.name.charAt(0) : 'U'}
+                            </div>
+                        )}
                     </div>
 
                     {/* Right: Info and Badge Stack */}

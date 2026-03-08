@@ -22,6 +22,9 @@ const hackathonSchema = new mongoose.Schema(
         teamSize: {
             type: Number,
         },
+        image: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

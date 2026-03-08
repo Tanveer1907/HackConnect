@@ -12,6 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const session = require('express-session');
+const passport = require('../config/passport');
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'hackconnect_secret',
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
