@@ -3,200 +3,185 @@ import { Link } from 'react-router-dom';
 
 export default function Hackathons() {
     const dummyHackathons = [
-        { id: 1, title: 'Global AI Challenge 2024', mode: 'ONLINE', duration: '48H', desc: 'Build the future of generative AI. Solve real-world problems using the latest...', deadline: '2 Days 4h', joined: 120 },
-        { id: 2, title: 'CyberDefend 2024', mode: 'NEW YORK', duration: '24H', desc: 'The ultimate CTF competition for university students. Secure the flag...', deadline: '12 Hours', joined: 45 },
-        { id: 3, title: 'Design Systems Hack', mode: 'HYBRID', duration: '1 WEEK', desc: 'Focus on UI/UX and frontend architecture. Create scalable design...', deadline: '5 Days', joined: 300, isStartsIn: true },
-        { id: 4, title: 'GreenTech Summit', mode: 'ONLINE', duration: '72H', desc: 'Innovating for a sustainable future. Develop solutions for climate change...', deadline: '1 Week', joined: 89 },
-        { id: 5, title: 'GameJam UK 2024', mode: 'LONDON', duration: '36H', desc: 'Create the next indie hit. Theme will be announced at the start of the event.', deadline: '3 Weeks', joined: 210, isStartsIn: true },
-        { id: 6, title: 'Open Source Summer', mode: 'ONLINE', duration: '4 WEEKS', desc: 'Contribute to major open source projects and earn rewards. A month-...', deadline: '1 Month', joined: 5000 }
+        { id: 1, title: 'AI Innovation India', mode: 'ONLINE', location: 'Bangalore', duration: '48H', desc: 'Build the future of generative AI. Solve real-world problems using the latest...', deadline: '2 Days 4h', joined: 120 },
+        { id: 2, title: 'CyberShield India CTF', mode: 'HYBRID', location: 'Hyderabad', duration: '24H', desc: 'The ultimate CTF competition for university students. Secure the flag...', deadline: '12 Hours', joined: 45 },
+        { id: 3, title: 'FinTech India Hackathon', mode: 'OFFLINE', location: 'Mumbai', duration: '36H', desc: 'Focus on UI/UX and frontend architecture. Create scalable design...', deadline: '5 Days', joined: 300, isStartsIn: true },
+        { id: 4, title: 'GreenTech India Summit', mode: 'ONLINE', location: 'Delhi', duration: '72H', desc: 'Innovating for a sustainable future. Develop solutions for climate change...', deadline: '1 Week', joined: 89 },
+        { id: 5, title: 'Open Source India Jam', mode: 'HYBRID', location: 'Pune', duration: '1 Week', desc: 'Create the next indie hit. Theme will be announced at the start of the event.', deadline: '3 Weeks', joined: 210, isStartsIn: true },
+        { id: 6, title: 'Web3 India Challenge', mode: 'OFFLINE', location: 'Chennai', duration: '48H', desc: 'Contribute to major open source projects and earn rewards. A month-...', deadline: '1 Month', joined: 5000 }
     ];
 
     return (
-        <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh' }}>
-            {/* Navbar */}
-            <nav style={{ display: 'flex', alignItems: 'center', padding: '15px 40px', justifyContent: 'space-between', backgroundColor: 'white', borderBottom: '1px solid #e5e7eb' }}>
-                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '20px', color: '#111827' }}>
-                    <div style={{ width: '24px', height: '24px', backgroundColor: '#2563eb', borderRadius: '4px' }}></div>
-                    HackConnect
-                </Link>
-                <div style={{ position: 'relative', flex: 1, maxWidth: '400px', marginLeft: '40px' }}>
-                    <span style={{ position: 'absolute', left: '12px', top: '10px', color: '#9ca3af' }}>🔍</span>
-                    <input type="text" placeholder="Search hackathons..." style={{ width: '100%', padding: '10px 10px 10px 35px', borderRadius: '20px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', outline: 'none' }} />
-                </div>
-                <div style={{ display: 'flex', gap: '25px', color: '#4b5563', fontSize: '14px', fontWeight: '500', marginLeft: 'auto', marginRight: '30px' }}>
-                    <span style={{ color: '#111827', borderBottom: '2px solid #2563eb', paddingBottom: '20px', marginBottom: '-20px' }}>Explore</span>
-                    <Link to="/teams" style={{ cursor: 'pointer', textDecoration: 'none', color: 'inherit' }}>Find Teammates</Link>
-                    <span style={{ cursor: 'pointer' }}>Resources</span>
-                    <span style={{ cursor: 'pointer' }}>My Projects</span>
-                </div>
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    <Link to="/login" className="btn-outline" style={{ fontSize: '14px', padding: '8px 16px' }}>Log In</Link>
-                    <Link to="/signup" className="btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>Sign Up</Link>
-                </div>
-            </nav>
+        <div className="bg-slate-50 transition-colors duration-300 dark:bg-transparent flex-1 flex flex-col">
 
             {/* Main Content */}
-            <div style={{ display: 'flex', maxWidth: '1400px', margin: '0 auto', padding: '40px' }}>
+            <div className="flex max-w-[1400px] mx-auto p-10 relative z-10">
                 {/* Sidebar Filters */}
-                <aside style={{ width: '250px', flexShrink: 0, paddingRight: '30px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0' }}>Filters</h3>
-                        <span style={{ color: '#2563eb', fontSize: '12px', cursor: 'pointer' }}>Reset All</span>
+                <aside className="w-[250px] shrink-0 pr-8">
+                    <div className="flex justify-between items-center mb-5">
+                        <h3 className="text-base font-bold m-0 text-slate-900 drop-shadow-sm dark:text-white">Filters</h3>
+                        <span className="text-blue-600 text-xs cursor-pointer hover:text-blue-800 transition-colors dark:text-blue-400 dark:hover:text-blue-300">Reset All</span>
                     </div>
 
-                    <div style={{ marginBottom: '30px' }}>
-                        <h4 style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px' }}>Mode</h4>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="mode" defaultChecked style={{ accentColor: '#2563eb' }} /> Online
+                    <div className="mb-8">
+                        <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Mode</h4>
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="mode" defaultChecked className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Online
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="mode" style={{ accentColor: '#2563eb' }} /> Offline (In-person)
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="mode" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Offline (In-person)
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="mode" style={{ accentColor: '#2563eb' }} /> Hybrid
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="mode" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Hybrid
                         </label>
                     </div>
 
-                    <div style={{ marginBottom: '30px' }}>
-                        <h4 style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px' }}>Domain</h4>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="checkbox" defaultChecked style={{ accentColor: '#2563eb' }} /> Web Development
+                    <div className="mb-8">
+                        <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Domain</h4>
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="checkbox" defaultChecked className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Web Development
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="checkbox" style={{ accentColor: '#2563eb' }} /> AI & Machine Learning
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> AI & Machine Learning
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="checkbox" style={{ accentColor: '#2563eb' }} /> Blockchain
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Blockchain
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="checkbox" style={{ accentColor: '#2563eb' }} /> Cybersecurity
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Cybersecurity
                         </label>
                     </div>
 
                     <div>
-                        <h4 style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px' }}>Duration</h4>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="dur" style={{ accentColor: '#2563eb' }} /> 1-2 Days
+                        <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Duration</h4>
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="dur" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> 1-2 Days
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="dur" style={{ accentColor: '#2563eb' }} /> 3-7 Days
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="dur" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> 3-7 Days
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', fontSize: '14px' }}>
-                            <input type="radio" name="dur" style={{ accentColor: '#2563eb' }} /> Month Long
+                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                            <input type="radio" name="dur" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Month Long
                         </label>
                     </div>
 
-                    <div style={{ backgroundColor: '#eef2ff', padding: '20px', borderRadius: '12px', marginTop: '40px' }}>
-                        <div style={{ color: '#4338ca', fontWeight: 'bold', fontSize: '14px', marginBottom: '10px' }}>📢 Pro Tip</div>
-                        <p style={{ color: '#4f46e5', fontSize: '12px', margin: 0 }}>Hackathons with "Beginner Friendly" tags often have mentors available 24/7.</p>
+                    <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 mt-10 shadow-sm dark:bg-blue-900/20 dark:border-blue-500/20 dark:shadow-[0_4px_15px_rgba(59,130,246,0.1)]">
+                        <div className="text-blue-700 font-bold text-sm mb-2 drop-shadow-sm dark:text-blue-400">📢 Pro Tip</div>
+                        <p className="text-blue-800 text-xs m-0 leading-relaxed dark:text-blue-200">Hackathons with "Beginner Friendly" tags often have mentors available 24/7.</p>
                     </div>
                 </aside>
 
                 {/* Hackathons Grid */}
-                <main style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px' }}>
+                <main className="flex-1">
+                    <div className="flex justify-between items-start mb-8">
                         <div>
-                            <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 10px 0' }}>Upcoming Hackathons</h1>
-                            <p style={{ color: '#6b7280', margin: 0 }}>Discover, compete, and win prizes in global challenges.</p>
+                            <h1 className="text-3xl font-extrabold m-0 mb-2.5 text-slate-900 drop-shadow-sm dark:text-white dark:drop-shadow-md">Upcoming Hackathons</h1>
+                            <p className="text-slate-600 m-0 dark:text-slate-400">Discover, compete, and win prizes in global challenges.</p>
                         </div>
-                        <select style={{ padding: '8px 16px', borderRadius: '20px', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', fontSize: '14px', outline: 'none' }}>
-                            <option>Recommended</option>
-                            <option>Newest</option>
-                            <option>Prize Pool</option>
+                        <select className="px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none dark:border-white/20 dark:bg-white/5 dark:text-slate-300 dark:focus:ring-blue-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:backdrop-blur-md">
+                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Recommended</option>
+                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Newest</option>
+                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Prize Pool</option>
                         </select>
                     </div>
 
                     {/* Stats Bar */}
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: '40px' }}>
-                        <div style={{ backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb', flex: 1 }}>
-                            <div style={{ width: '40px', height: '40px', backgroundColor: '#dcfce7', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px' }}>📅</div>
+                    <div className="flex gap-5 mb-10">
+                        <div className="bg-white px-5 py-4 rounded-xl flex items-center gap-4 border border-gray-100 flex-1 shadow-sm group hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:hover:border-white/20">
+                            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex justify-center items-center text-xl border border-emerald-100 shadow-sm dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:shadow-[0_0_10px_rgba(16,185,129,0.2)]">📅</div>
                             <div>
-                                <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Active Now</div>
-                                <div style={{ fontSize: '20px', fontWeight: 'bold' }}>14 Events</div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest font-bold dark:text-slate-400">Active Now</div>
+                                <div className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors dark:text-white dark:group-hover:text-emerald-400">14 Events</div>
                             </div>
                         </div>
-                        <div style={{ backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb', flex: 1 }}>
-                            <div style={{ width: '40px', height: '40px', backgroundColor: '#f3e8ff', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px' }}>🚀</div>
+                        <div className="bg-white px-5 py-4 rounded-xl flex items-center gap-4 border border-gray-100 flex-1 shadow-sm group hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:hover:border-white/20">
+                            <div className="w-10 h-10 bg-purple-50 rounded-lg flex justify-center items-center text-xl border border-purple-100 shadow-sm dark:bg-purple-500/20 dark:border-purple-500/30 dark:shadow-[0_0_10px_rgba(168,85,247,0.2)]">🚀</div>
                             <div>
-                                <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Upcoming</div>
-                                <div style={{ fontSize: '20px', fontWeight: 'bold' }}>32 Events</div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest font-bold dark:text-slate-400">Upcoming</div>
+                                <div className="text-xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors dark:text-white dark:group-hover:text-purple-400">32 Events</div>
                             </div>
                         </div>
-                        <div style={{ backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '15px', border: '1px solid #e5e7eb', flex: 1 }}>
-                            <div style={{ width: '40px', height: '40px', backgroundColor: '#ffedd5', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px' }}>👥</div>
+                        <div className="bg-white px-5 py-4 rounded-xl flex items-center gap-4 border border-gray-100 flex-1 shadow-sm group hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:hover:border-white/20">
+                            <div className="w-10 h-10 bg-orange-50 rounded-lg flex justify-center items-center text-xl border border-orange-100 shadow-sm dark:bg-orange-500/20 dark:border-orange-500/30 dark:shadow-[0_0_10px_rgba(249,115,22,0.2)]">👥</div>
                             <div>
-                                <div style={{ fontSize: '12px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Hackers</div>
-                                <div style={{ fontSize: '20px', fontWeight: 'bold' }}>12k+ Active</div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest font-bold dark:text-slate-400">Hackers</div>
+                                <div className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors dark:text-white dark:group-hover:text-orange-400">12k+ Active</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Cards Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {dummyHackathons.map((hackathon, i) => (
-                            <div key={hackathon.id} style={{ backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e5e7eb', transition: 'transform 0.2s', cursor: 'pointer' }} className="hackathon-card">
-                                <div style={{ height: '160px', backgroundColor: '#e5e7eb', position: 'relative' }}>
-                                    <img src={`https://images.unsplash.com/photo-${1500000000000 + i + 10}?auto=format&fit=crop&w=600&q=80`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Cover" />
-                                    <div style={{ position: 'absolute', top: '15px', right: '15px', width: '32px', height: '32px', backgroundColor: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white' }}>🤍</div>
-                                    {i === 0 && (
-                                        <div style={{ position: 'absolute', top: '15px', left: '15px', backgroundColor: 'white', color: '#111827', fontSize: '12px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '12px' }}>Featured</div>
-                                    )}
+                            <div key={hackathon.id} className="bg-white rounded-2xl overflow-hidden border border-gray-200 transition-all duration-300 cursor-pointer block hover:shadow-md hover:border-blue-300 hover:-translate-y-1 group shadow-sm dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
+                                <div className="h-[160px] bg-slate-200 relative dark:bg-slate-800">
+                                    <img src={`https://images.unsplash.com/photo-${1500000000000 + i + 10}?auto=format&fit=crop&w=600&q=80`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80" alt="Cover" />
+                                    <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-slate-700 border border-white hover:bg-white transition hover:scale-110 shadow-sm dark:bg-black/40 dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                    </div>
                                 </div>
-                                <div style={{ padding: '20px' }}>
-                                    <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                                        <span style={{ backgroundColor: hackathon.mode === 'ONLINE' ? '#ecfdf5' : '#eff6ff', color: hackathon.mode === 'ONLINE' ? '#059669' : '#2563eb', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.5px' }}>
-                                            {hackathon.mode === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode === 'HYBRID' ? '🏙️ HYBRID' : '📍 ' + hackathon.mode}
+                                <div className="p-5 flex flex-col h-[calc(100%-160px)]">
+                                    <div className="flex gap-2.5 mb-4 flex-wrap">
+                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
+                                            {hackathon.mode === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
                                         </span>
-                                        <span style={{ backgroundColor: '#f3f4f6', color: '#4b5563', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px', letterSpacing: '0.5px' }}>
+                                        <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
+                                            📍 {hackathon.location || 'India'}
+                                        </span>
+                                        <span className="bg-indigo-50 text-indigo-600 border border-indigo-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
                                             ⏱️ {hackathon.duration}
                                         </span>
                                     </div>
 
-                                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 10px 0', color: '#111827' }}>{hackathon.title}</h3>
-                                    <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.5', margin: '0 0 20px 0', height: '42px', overflow: 'hidden' }}>{hackathon.desc}</p>
+                                    <h3 className="text-[18px] font-bold m-0 mb-2.5 text-slate-900 group-hover:text-blue-600 transition-colors drop-shadow-sm dark:text-white dark:group-hover:text-blue-400">{hackathon.title}</h3>
+                                    <p className="text-slate-600 text-[14px] leading-relaxed m-0 mb-5 h-[42px] overflow-hidden line-clamp-2 dark:text-slate-400">{hackathon.desc}</p>
 
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                            <div style={{ display: 'flex' }}>
-                                                <div style={{ width: '24px', height: '24px', backgroundColor: '#e5e7eb', borderRadius: '12px', border: '2px solid white' }}></div>
-                                                <div style={{ width: '24px', height: '24px', backgroundColor: '#d1d5db', borderRadius: '12px', border: '2px solid white', marginLeft: '-8px' }}></div>
+                                    <div className="flex justify-between items-end mb-5 border-t border-gray-100 pt-4 mt-auto dark:border-white/10">
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="flex -space-x-2">
+                                                <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-700 dark:border-slate-800">
+                                                    <img src={`https://i.pravatar.cc/150?u=${hackathon.id || 1}a`} alt="u1" className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-600 dark:border-slate-800">
+                                                    <img src={`https://i.pravatar.cc/150?u=${hackathon.id || 1}b`} alt="u2" className="w-full h-full object-cover" />
+                                                </div>
                                             </div>
-                                            <span style={{ color: '#6b7280', fontSize: '12px', fontWeight: '500' }}>+{hackathon.joined}</span>
+                                            <span className="text-slate-500 text-[12px] font-medium ml-1 dark:text-slate-400">+{hackathon.joined}</span>
                                         </div>
-                                        <div style={{ textAlign: 'right' }}>
-                                            <div style={{ fontSize: '10px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 'bold' }}>{hackathon.isStartsIn ? 'STARTS IN' : 'DEADLINE IN'}</div>
-                                            <div style={{ fontSize: '14px', color: hackathon.isStartsIn ? '#111827' : '#dc2626', fontWeight: 'bold' }}>{hackathon.deadline}</div>
+                                        <div className="text-right">
+                                            <div className="text-[10px] text-slate-500 uppercase font-bold">{hackathon.isStartsIn ? 'STARTS IN' : 'DEADLINE IN'}</div>
+                                            <div className={`text-[14px] font-bold ${hackathon.isStartsIn ? 'text-slate-900 dark:text-white' : 'text-red-600 drop-shadow-sm dark:text-red-400 dark:drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]'}`}>{hackathon.deadline}</div>
                                         </div>
                                     </div>
 
-                                    <button className="btn-outline" style={{ width: '100%', padding: '10px', fontSize: '14px' }}>View Details</button>
+                                    <button className="w-full py-2.5 bg-slate-50 border border-gray-200 text-slate-700 font-bold text-sm rounded-xl text-center group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-sm group-hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:text-white dark:shadow-[0_4px_10px_rgba(0,0,0,0.1)] dark:group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">View Details</button>
                                 </div>
                             </div>
                         ))}
                     </div>
 
                     {/* Pagination */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '40px', gap: '10px' }}>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#6b7280', cursor: 'pointer' }}>&lt;</button>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: 'none', backgroundColor: '#2563eb', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>1</button>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: 'none', backgroundColor: 'transparent', color: '#4b5563', cursor: 'pointer' }}>2</button>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: 'none', backgroundColor: 'transparent', color: '#4b5563', cursor: 'pointer' }}>3</button>
-                        <span style={{ color: '#9ca3af', lineHeight: '36px' }}>...</span>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: 'none', backgroundColor: 'transparent', color: '#4b5563', cursor: 'pointer' }}>12</button>
-                        <button style={{ width: '36px', height: '36px', borderRadius: '18px', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#6b7280', cursor: 'pointer' }}>&gt;</button>
+                    <div className="flex justify-center mt-10 gap-2.5">
+                        <button className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">&lt;</button>
+                        <button className="w-9 h-9 rounded-full border-none bg-blue-600 text-white font-bold cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform dark:shadow-[0_4px_10px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">1</button>
+                        <button className="w-9 h-9 rounded-full border-none bg-transparent text-slate-600 hover:bg-gray-100 transition-colors cursor-pointer dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white">2</button>
+                        <button className="w-9 h-9 rounded-full border-none bg-transparent text-slate-600 hover:bg-gray-100 transition-colors cursor-pointer dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white">3</button>
+                        <span className="text-slate-500 leading-9">...</span>
+                        <button className="w-9 h-9 rounded-full border-none bg-transparent text-slate-600 hover:bg-gray-100 transition-colors cursor-pointer dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white">12</button>
+                        <button className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">&gt;</button>
                     </div>
                 </main>
             </div>
 
-            <footer style={{ backgroundColor: 'white', padding: '40px 0', borderTop: '1px solid #e5e7eb', textAlign: 'center' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', color: '#4b5563', fontSize: '14px', marginBottom: '20px' }}>
-                    <span>About</span>
-                    <span>Contact</span>
-                    <span>Privacy Policy</span>
-                    <span>Terms of Service</span>
+            <footer className="bg-white border-t border-gray-200 py-10 text-center relative z-10 transition-colors duration-300 dark:bg-black/20 dark:backdrop-blur-lg dark:border-white/10">
+                <div className="flex justify-center gap-[30px] text-slate-500 text-[14px] mb-[20px] dark:text-slate-400">
+                    <span className="hover:text-blue-600 transition-colors cursor-pointer dark:hover:text-white">About</span>
+                    <span className="hover:text-blue-600 transition-colors cursor-pointer dark:hover:text-white">Contact</span>
+                    <span className="hover:text-blue-600 transition-colors cursor-pointer dark:hover:text-white">Privacy Policy</span>
+                    <span className="hover:text-blue-600 transition-colors cursor-pointer dark:hover:text-white">Terms of Service</span>
                 </div>
-                <div style={{ color: '#9ca3af', fontSize: '12px' }}>
-                    © 2023 HackConnect. All rights reserved.
+                <div className="text-slate-500 text-[12px]">
+                    © 2026 HackConnect. All rights reserved.
                 </div>
             </footer>
         </div>

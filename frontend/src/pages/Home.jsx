@@ -3,111 +3,93 @@ import { Link } from 'react-router-dom';
 
 export default function Home() {
     return (
-        <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-            {/* Navbar directly in Home page for exact layout */}
-            <nav style={{ display: 'flex', alignItems: 'center', padding: '20px 40px', justifyContent: 'space-between', backgroundColor: 'white' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '20px', color: '#111827' }}>
-                    <div style={{ width: '24px', height: '24px', backgroundColor: '#2563eb', borderRadius: '4px' }}></div>
-                    HackConnect
-                </div>
-                <div style={{ display: 'flex', gap: '30px', color: '#4b5563', fontSize: '14px', fontWeight: '500' }}>
-                    <Link to="/hackathons">Hackathons</Link>
-                    <span style={{ cursor: 'pointer' }}>Teams</span>
-                    <span style={{ cursor: 'pointer' }}>Internships</span>
-                    <span style={{ cursor: 'pointer' }}>Community</span>
-                </div>
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                    <Link to="/login" style={{ color: '#4b5563', fontWeight: '600', fontSize: '14px' }}>Log In</Link>
-                    <Link to="/signup" className="btn-primary" style={{ fontSize: '14px', padding: '8px 16px' }}>Sign Up</Link>
-                </div>
-            </nav>
-
-            <main style={{ padding: '60px 40px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-transparent dark:text-white flex flex-col">
+            <main className="px-10 py-16 max-w-[1200px] mx-auto flex-1 w-full">
                 {/* Hero Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '100px' }}>
-                    <div style={{ flex: 1, paddingRight: '40px' }}>
-                        <div style={{ display: 'inline-block', backgroundColor: '#e0e7ff', color: '#4338ca', padding: '4px 12px', borderRadius: '16px', fontSize: '12px', fontWeight: '600', marginBottom: '20px' }}>
+                <div className="flex flex-col lg:flex-row justify-between items-center mb-24 gap-10">
+                    <div className="flex-1 lg:pr-10">
+                        <div className="inline-block bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-semibold mb-5 dark:bg-indigo-900/50 dark:text-indigo-300 dark:border dark:border-indigo-400/20">
                             🚀 v2.0 is now live!
                         </div>
-                        <h1 style={{ fontSize: '56px', fontWeight: '800', lineHeight: '1.1', color: '#111827', margin: '0 0 20px 0' }}>
+                        <h1 className="text-5xl md:text-6xl font-extrabold leading-tight text-slate-900 mb-5 dark:text-white">
                             Discover Hackathons.<br />
-                            <span style={{ color: '#2563eb' }}>Build Strong Teams.</span><br />
+                            <span className="text-blue-600 dark:text-blue-400">Build Strong Teams.</span><br />
                             Grow Together.
                         </h1>
-                        <p style={{ color: '#6b7280', fontSize: '18px', maxWidth: '500px', lineHeight: '1.6', marginBottom: '40px' }}>
+                        <p className="text-slate-500 text-lg max-w-[500px] leading-relaxed mb-10 dark:text-slate-400">
                             HackConnect is the ultimate platform for students to find teammates, join global hackathons, and launch their careers in tech.
                         </p>
-                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                            <Link to="/signup" className="btn-primary" style={{ padding: '12px 24px', fontSize: '16px' }}>Get Started</Link>
-                            <Link to="/hackathons" className="btn-outline" style={{ padding: '12px 24px', fontSize: '16px' }}>Explore Hackathons</Link>
+                        <div className="flex gap-4 items-center">
+                            <Link to="/signup" className="btn-primary px-6 py-3 text-base dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">Get Started</Link>
+                            <Link to="/hackathons" className="btn-outline px-6 py-3 text-base dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">Explore Hackathons</Link>
                         </div>
                     </div>
-                    <div style={{ flex: 1, position: 'relative' }}>
+                    <div className="flex-1 relative w-full">
                         <img
                             src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
                             alt="Team collaborating"
-                            style={{ width: '100%', borderRadius: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                            className="w-full rounded-3xl shadow-2xl opacity-90 dark:opacity-80"
                         />
-                        <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', backgroundColor: 'white', padding: '15px 20px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <div style={{ width: '40px', height: '40px', backgroundColor: '#e0e7ff', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>🏆</div>
+                        <div className="absolute bottom-5 left-5 right-5 bg-white p-4 md:p-5 rounded-xl flex justify-between items-center shadow-lg transition-colors duration-300 dark:bg-slate-800 dark:border dark:border-white/10 dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex justify-center items-center text-xl dark:bg-indigo-900/50 dark:text-white">🏆</div>
                                 <div>
-                                    <div style={{ fontWeight: 'bold', fontSize: '14px' }}>HackMIT 2024</div>
-                                    <div style={{ color: '#6b7280', fontSize: '12px' }}>Registration closing in 2 days</div>
+                                    <div className="font-bold text-sm text-slate-900 dark:text-white">HackMIT 2024</div>
+                                    <div className="text-slate-500 text-xs dark:text-slate-400">Registration closing in 2 days</div>
                                 </div>
                             </div>
-                            <button className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '20px' }}>Join</button>
+                            <button className="btn-primary px-3 py-1.5 text-xs rounded-full">Join</button>
                         </div>
                     </div>
                 </div>
 
                 {/* How it Works */}
-                <div style={{ textAlign: 'center', marginBottom: '100px' }}>
-                    <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '15px' }}>How it Works</h2>
-                    <p style={{ color: '#6b7280', marginBottom: '50px' }}>Join the community in three simple steps and start building your dream projects.</p>
+                <div className="text-center mb-24">
+                    <h2 className="text-3xl font-extrabold mb-4 text-slate-900 dark:text-white">How it Works</h2>
+                    <p className="text-slate-500 mb-12 dark:text-slate-400">Join the community in three simple steps and start building your dream projects.</p>
 
-                    <div style={{ display: 'flex', gap: '30px', justifyContent: 'space-between' }}>
+                    <div className="flex flex-col md:flex-row gap-8 justify-between">
                         {[
                             { icon: '👤', title: '1. Create Profile', desc: 'Showcase your skills, GitHub repos, and past projects to attract the best teammates.' },
                             { icon: '👥', title: '2. Find a Team', desc: 'Browse listings or post your own to find the perfect squad for your next event.' },
                             { icon: '🏆', title: '3. Build & Win', desc: 'Collaborate efficiently, submit your project, and win prizes and recognition.' }
                         ].map((step, i) => (
-                            <div key={i} style={{ flex: 1, backgroundColor: 'white', padding: '40px 30px', borderRadius: '16px', border: '1px solid #f3f4f6', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                                <div style={{ width: '60px', height: '60px', backgroundColor: '#f3f4f6', borderRadius: '30px', margin: '0 auto 20px auto', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '24px' }}>{step.icon}</div>
-                                <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{step.title}</h3>
-                                <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6' }}>{step.desc}</p>
+                            <div key={i} className="flex-1 bg-white p-10 rounded-2xl border border-gray-100 shadow-sm transition-colors duration-300 dark:bg-slate-800/50 dark:border-white/10 dark:backdrop-blur-sm hover:shadow-md dark:shadow-none dark:hover:bg-slate-800/80">
+                                <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto mb-5 flex justify-center items-center text-2xl dark:bg-slate-700/50">{step.icon}</div>
+                                <h3 className="text-lg font-bold mb-2.5 text-slate-900 dark:text-white">{step.title}</h3>
+                                <p className="text-slate-500 text-sm leading-relaxed dark:text-slate-400">{step.desc}</p>
                             </div>
                         ))}
                     </div>
-                    <div style={{ marginTop: '30px' }}>
-                        <span style={{ color: '#2563eb', fontWeight: '600', cursor: 'pointer' }}>Learn more about the process →</span>
+                    <div className="mt-8">
+                        <span className="text-blue-600 font-semibold cursor-pointer hover:underline dark:text-blue-400">Learn more about the process →</span>
                     </div>
                 </div>
 
                 {/* Platform Features */}
-                <div style={{ marginBottom: '100px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '40px' }}>
+                <div className="mb-24">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
                         <div>
-                            <h2 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '10px' }}>Platform Features</h2>
-                            <p style={{ color: '#6b7280' }}>Everything you need to succeed in the hackathon ecosystem.</p>
+                            <h2 className="text-3xl font-extrabold mb-2.5 text-slate-900 dark:text-white">Platform Features</h2>
+                            <p className="text-slate-500 dark:text-slate-400">Everything you need to succeed in the hackathon ecosystem.</p>
                         </div>
-                        <button className="btn-outline" style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '14px' }}>View all features</button>
+                        <button className="btn-outline px-4 py-2 text-sm rounded-full dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">View all features</button>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '30px' }}>
+                    <div className="flex flex-col md:flex-row gap-8">
                         {[
                             { tag: 'DISCOVERY', title: 'Global Hackathon List', desc: 'A curated, real-time list of global and local hackathons updated daily. Filter by location, prizes, or tech stack.' },
                             { tag: 'NETWORKING', title: 'Smart Team Formation', desc: 'Our AI matching algorithm helps you find teammates with complementary skills to build the perfect balanced squad.' },
                             { tag: 'CAREER', title: 'Internship Opportunities', desc: 'Connect directly with event sponsors and top tech companies looking to hire talent from hackathons.' }
                         ].map((feature, i) => (
-                            <div key={i} style={{ flex: 1, backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                                <div style={{ height: '200px', backgroundColor: '#e5e7eb' }}>
-                                    <img src={`https://images.unsplash.com/photo-${1500000000000 + i}?auto=format&fit=crop&w=400&q=80`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="feature" />
+                            <div key={i} className="flex-1 bg-white rounded-2xl overflow-hidden border border-gray-200 transition-colors duration-300 dark:bg-slate-800/50 dark:border-white/10 dark:backdrop-blur-sm">
+                                <div className="h-48 bg-gray-200 dark:bg-slate-700">
+                                    <img src={`https://images.unsplash.com/photo-${1500000000000 + i}?auto=format&fit=crop&w=400&q=80`} className="w-full h-full object-cover opacity-90 dark:opacity-80" alt="feature" />
                                 </div>
-                                <div style={{ padding: '24px' }}>
-                                    <div style={{ color: '#2563eb', fontSize: '12px', fontWeight: 'bold', marginBottom: '10px' }}>{feature.tag}</div>
-                                    <h3 style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{feature.title}</h3>
-                                    <p style={{ color: '#6b7280', fontSize: '14px', lineHeight: '1.6' }}>{feature.desc}</p>
+                                <div className="p-6">
+                                    <div className="text-blue-600 text-xs font-bold mb-2.5 dark:text-blue-400">{feature.tag}</div>
+                                    <h3 className="text-lg font-bold mb-2.5 text-slate-900 dark:text-white">{feature.title}</h3>
+                                    <p className="text-slate-500 text-sm leading-relaxed dark:text-slate-400">{feature.desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -115,44 +97,44 @@ export default function Home() {
                 </div>
 
                 {/* CTA */}
-                <div style={{ backgroundColor: '#3b49df', borderRadius: '24px', padding: '60px', textAlign: 'center', color: 'white' }}>
-                    <h2 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '30px' }}>Ready to build something amazing?</h2>
-                    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-                        <Link to="/signup" className="btn-outline" style={{ padding: '12px 24px', borderRadius: '30px' }}>Sign Up Now</Link>
-                        <Link to="/hackathons" style={{ padding: '12px 24px', borderRadius: '30px', border: '1px solid white', color: 'white', fontWeight: '600' }}>View Hackathons</Link>
+                <div className="bg-blue-600 rounded-3xl p-16 text-center text-white shadow-xl dark:bg-blue-700/80 dark:backdrop-blur-xl dark:shadow-[0_10px_30px_rgba(59,130,246,0.2)] dark:border dark:border-white/10">
+                    <h2 className="text-3xl font-bold mb-8">Ready to build something amazing?</h2>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Link to="/signup" className="btn-outline px-6 py-3 rounded-full bg-white text-blue-600 hover:bg-gray-50 border-transparent font-bold">Sign Up Now</Link>
+                        <Link to="/hackathons" className="px-6 py-3 rounded-full border border-white text-white font-semibold hover:bg-white/10 transition-colors dark:border-white/20 dark:hover:bg-white/5">View Hackathons</Link>
                     </div>
                 </div>
             </main>
 
-            <footer style={{ backgroundColor: 'white', padding: '60px 40px', borderTop: '1px solid #e5e7eb' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between' }}>
+            <footer className="bg-white px-10 py-16 border-t border-gray-200 transition-colors duration-300 dark:bg-slate-900/80 dark:border-t-white/10">
+                <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between gap-10">
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '20px', color: '#111827', marginBottom: '15px' }}>
-                            <div style={{ width: '24px', height: '24px', backgroundColor: '#2563eb', borderRadius: '4px' }}></div>
+                        <div className="flex items-center gap-2 font-bold text-xl text-slate-900 mb-4 dark:text-white">
+                            <div className="w-6 h-6 bg-blue-600 rounded"></div>
                             HackConnect
                         </div>
-                        <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '300px' }}>Empowering the next generation of builders. Connect, create, and launch your career with HackConnect.</p>
+                        <p className="text-slate-500 text-sm max-w-xs dark:text-slate-400">Empowering the next generation of builders. Connect, create, and launch your career with HackConnect.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '60px', fontSize: '14px' }}>
+                    <div className="flex gap-16 text-sm">
                         <div>
-                            <h4 style={{ fontWeight: 'bold', marginBottom: '15px' }}>PLATFORM</h4>
-                            <div style={{ color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <span>Find Hackathons</span>
-                                <span>Find Teammates</span>
-                                <span>Internships</span>
+                            <h4 className="font-bold mb-4 text-slate-900 dark:text-white">PLATFORM</h4>
+                            <div className="text-slate-500 flex flex-col gap-2.5 dark:text-slate-400">
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Hackathons</span>
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Teammates</span>
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Internships</span>
                             </div>
                         </div>
                         <div>
-                            <h4 style={{ fontWeight: 'bold', marginBottom: '15px' }}>COMPANY</h4>
-                            <div style={{ color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <span>About Us</span>
-                                <span>Careers</span>
-                                <span>Contact</span>
+                            <h4 className="font-bold mb-4 text-slate-900 dark:text-white">COMPANY</h4>
+                            <div className="text-slate-500 flex flex-col gap-2.5 dark:text-slate-400">
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">About Us</span>
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Careers</span>
+                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Contact</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '12px', marginTop: '60px' }}>
+                <div className="text-center text-slate-400 text-xs mt-16 dark:text-slate-500">
                     © 2024 HackConnect Inc. All rights reserved.
                 </div>
             </footer>
