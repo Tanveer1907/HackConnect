@@ -7,10 +7,19 @@ export default function Hackathons() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [mode, setMode] = useState('All');
+    const [domain, setDomain] = useState('');
+
     useEffect(() => {
         const fetchHackathons = async () => {
+            setLoading(true);
             try {
-                const response = await getHackathons();
+                const params = new URLSearchParams();
+                if (mode && mode !== 'All') params.append('mode', mode.toUpperCase());
+                if (domain) params.append('domain', domain);
+                const queryStr = params.toString() ? `?${params.toString()}` : '';
+
+                const response = await getHackathons(queryStr);
                 setHackathons(response.data);
                 setLoading(false);
             } catch (err) {
@@ -21,7 +30,8 @@ export default function Hackathons() {
         };
 
         fetchHackathons();
-    }, []);
+        fetchHackathons();
+    }, [mode, domain]);
 
     if (loading) {
         return <div className="flex-1 flex justify-center items-center h-screen bg-slate-50 dark:bg-[#0f172a]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -43,38 +53,38 @@ export default function Hackathons() {
                 <aside className="w-full md:w-[250px] shrink-0">
                     <div className="flex justify-between items-center mb-5">
                         <h3 className="text-base font-bold m-0 text-slate-900 drop-shadow-sm dark:text-white">Filters</h3>
-                        <span className="text-blue-600 text-xs cursor-pointer hover:text-blue-800 transition-colors dark:text-blue-400 dark:hover:text-blue-300">Reset All</span>
+                        <span onClick={() => { setMode('All'); setDomain(''); }} className="text-blue-600 text-xs cursor-pointer hover:text-blue-800 transition-colors dark:text-blue-400 dark:hover:text-blue-300">Reset All</span>
                     </div>
 
                     <div className="mb-8">
                         <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Mode</h4>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="mode" defaultChecked className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> All
+                            <input type="radio" name="mode" checked={mode === 'All'} onChange={() => setMode('All')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> All
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="mode" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Online
+                            <input type="radio" name="mode" checked={mode === 'Online'} onChange={() => setMode('Online')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Online
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="mode" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Offline
+                            <input type="radio" name="mode" checked={mode === 'Offline'} onChange={() => setMode('Offline')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Offline
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="mode" className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Hybrid
+                            <input type="radio" name="mode" checked={mode === 'Hybrid'} onChange={() => setMode('Hybrid')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Hybrid
                         </label>
                     </div>
 
                     <div className="mb-8">
                         <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Domain</h4>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Web Development
+                            <input type="radio" name="domain" checked={domain === 'Web Development'} onChange={() => setDomain(domain === 'Web Development' ? '' : 'Web Development')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Web Development
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> AI & Machine Learning
+                            <input type="radio" name="domain" checked={domain === 'AI & Machine Learning'} onChange={() => setDomain(domain === 'AI & Machine Learning' ? '' : 'AI & Machine Learning')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> AI & Machine Learning
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Blockchain
+                            <input type="radio" name="domain" checked={domain === 'Blockchain'} onChange={() => setDomain(domain === 'Blockchain' ? '' : 'Blockchain')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Blockchain
                         </label>
                         <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="checkbox" className="accent-blue-600 w-4 h-4 rounded cursor-pointer bg-white border-gray-300 dark:accent-blue-500 dark:bg-slate-800 dark:border-white/20" /> Cybersecurity
+                            <input type="radio" name="domain" checked={domain === 'Cybersecurity'} onChange={() => setDomain(domain === 'Cybersecurity' ? '' : 'Cybersecurity')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Cybersecurity
                         </label>
                     </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers, getUserProfile } from '../services/api';
+import { getAllUsers, getUserProfile, getRecommendedTeammates } from '../services/api';
 
 export default function Teams() {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -11,16 +11,19 @@ export default function Teams() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await getAllUsers();
                 let currentUserId = null;
+                let response;
 
                 if (localStorage.getItem('token')) {
                     try {
                         const profileObj = await getUserProfile();
                         currentUserId = profileObj.data._id;
+                        response = await getRecommendedTeammates();
                     } catch (e) {
-                        // ignore 
+                        response = await getAllUsers();
                     }
+                } else {
+                    response = await getAllUsers();
                 }
 
                 // Map the backend user model to the format expected by TeamCard
@@ -33,7 +36,7 @@ export default function Teams() {
                     profileImage: user.profileImage || "",
                     university: user.university || "University Not Specified",
                     major: user.major || "Role Not Specified",
-                    matchPercentage: Math.floor(Math.random() * (99 - 70 + 1)) + 70, // random match % for now
+                    matchPercentage: user.matchScore !== undefined ? user.matchScore : Math.floor(Math.random() * (99 - 70 + 1)) + 70,
                     skills: user.skills ? user.skills.map(skill => ({ name: skill.name || skill })) : [],
                     roleRequirement: user.bio || "Looking for a team",
                     hackathons: user.hackathonsParticipated?.length || 0,

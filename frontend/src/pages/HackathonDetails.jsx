@@ -1,11 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getHackathonDetails } from '../services/api';
+import { getHackathonDetails, createTeam, sendTeamRequest } from '../services/api';
 
 export default function HackathonDetails() {
     const { id } = useParams();
     const [hackathon, setHackathon] = useState(null);
+    const [teamName, setTeamName] = useState('');
+    const [joinTeamId, setJoinTeamId] = useState('');
+    const [showCreateTeam, setShowCreateTeam] = useState(false);
+    const [showJoinTeam, setShowJoinTeam] = useState(false);
+
+    const handleCreateTeam = async () => {
+        if (!teamName) return alert('Please enter a team name');
+        try {
+            await createTeam({ name: teamName, hackathonId: id });
+            alert("Team created successfully!");
+            setTeamName('');
+            setShowCreateTeam(false);
+        } catch (err) {
+            alert("Error creating team: " + (err.response?.data?.message || err.message));
+        }
+    };
+
+    const handleJoinTeam = async () => {
+        if (!joinTeamId) return alert('Please enter a Team ID');
+        try {
+            await sendTeamRequest(joinTeamId);
+            alert("Join request sent successfully!");
+            setJoinTeamId('');
+            setShowJoinTeam(false);
+        } catch (err) {
+            alert("Error sending request: " + (err.response?.data?.message || err.message));
+        }
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -65,10 +93,45 @@ export default function HackathonDetails() {
                                         <p className="font-extrabold text-xl text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.prizePool || '$10,000'}</p>
                                     </div>
                                 </div>
-                                <button className="w-full md:w-auto px-10 py-4 bg-blue-600 text-white text-lg font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all hover:-translate-y-1 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]">
-                                    Join Hackathon
-                                </button>
+                                <div className="flex flex-col gap-3 w-full md:w-auto">
+                                    <button onClick={() => setShowCreateTeam(!showCreateTeam)} className="w-full md:w-auto px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all hover:-translate-y-1 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]">
+                                        Create Team
+                                    </button>
+                                    <button onClick={() => setShowJoinTeam(!showJoinTeam)} className="w-full md:w-auto px-10 py-3 bg-white border-2 border-blue-600 text-blue-600 text-lg font-bold rounded-xl hover:bg-blue-50 transition-all hover:-translate-y-1 dark:bg-transparent dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20">
+                                        Join Team
+                                    </button>
+                                </div>
                             </div>
+                            
+                            {/* Actions Dropdowns */}
+                            {(showCreateTeam || showJoinTeam) && (
+                                <div className="mb-10 p-6 bg-blue-50 rounded-2xl border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
+                                    {showCreateTeam && (
+                                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Enter Team Name" 
+                                                value={teamName}
+                                                onChange={(e) => setTeamName(e.target.value)}
+                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                            />
+                                            <button onClick={handleCreateTeam} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">Submit</button>
+                                        </div>
+                                    )}
+                                    {showJoinTeam && (
+                                        <div className="flex flex-col sm:flex-row gap-4 items-center">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Enter Team ID to Join" 
+                                                value={joinTeamId}
+                                                onChange={(e) => setJoinTeamId(e.target.value)}
+                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                                            />
+                                            <button onClick={handleJoinTeam} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">Send Request</button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
