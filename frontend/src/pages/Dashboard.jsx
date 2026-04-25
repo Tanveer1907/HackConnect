@@ -7,6 +7,21 @@ export default function Dashboard() {
     const [hackathons, setHackathons] = useState([]);
     const [user, setUser] = useState(null);
 
+    const handleAccept = async () => {
+        const teamId = prompt("Enter your Team ID:");
+        if (!teamId) return;
+        const userId = prompt("Enter User ID to accept:");
+        if (!userId) return;
+
+        try {
+            const { acceptTeamRequest } = require('../services/api');
+            await acceptTeamRequest(teamId, { userIdToAccept: userId });
+            alert("Request accepted successfully!");
+        } catch (error) {
+            alert("Error accepting request: " + (error.response?.data?.message || error.message));
+        }
+    };
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -69,21 +84,21 @@ export default function Dashboard() {
                         {/* Team Invites */}
                         <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm transition-all duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] dark:hover:border-white/20">
                             <div className="flex justify-between items-center mb-8">
-                                <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Team Invites</h3>
-                                <span className="bg-red-50 text-red-600 border border-red-200 text-xs font-bold w-10 h-7 flex items-center justify-center rounded-full shadow-sm dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]">2 New</span>
+                                <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Pending Join Requests</h3>
+                                <span className="bg-red-50 text-red-600 border border-red-200 text-xs font-bold w-10 h-7 flex items-center justify-center rounded-full shadow-sm dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 dark:shadow-[0_0_10px_rgba(239,68,68,0.2)]">1 New</span>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="group">
                                     <div className="flex items-center gap-4 mb-3">
-                                        <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 font-bold text-xl border border-teal-200 shadow-sm dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500/30 dark:shadow-[0_0_15px_rgba(20,184,166,0.15)]">C</div>
+                                        <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 font-bold text-xl border border-teal-200 shadow-sm dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500/30 dark:shadow-[0_0_15px_rgba(20,184,166,0.15)]">J</div>
                                         <div className="flex-1">
-                                            <h4 className="font-bold text-slate-900 group-hover:text-teal-500 transition-colors dark:text-white dark:group-hover:text-teal-400">CyberPunks</h4>
-                                            <p className="text-xs text-slate-500 font-medium dark:text-slate-400">Global AI Hackathon</p>
+                                            <h4 className="font-bold text-slate-900 group-hover:text-teal-500 transition-colors dark:text-white dark:group-hover:text-teal-400">John Doe</h4>
+                                            <p className="text-xs text-slate-500 font-medium dark:text-slate-400">wants to join CyberPunks</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-3">
-                                        <button className="flex-1 py-2 bg-blue-600/90 text-white text-xs font-bold rounded-xl hover:bg-blue-500 shadow-[0_4px_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all">Accept</button>
+                                        <button onClick={handleAccept} className="flex-1 py-2 bg-blue-600/90 text-white text-xs font-bold rounded-xl hover:bg-blue-500 shadow-[0_4px_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all">Accept</button>
                                         <button className="flex-1 py-2 bg-white border border-gray-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-gray-50 hover:text-slate-900 shadow-sm transition-all dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">Decline</button>
                                     </div>
                                 </div>
