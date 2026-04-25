@@ -24,4 +24,9 @@ router.get('/', userController.getAllUsers);
 // @access  Private
 router.put('/profile', authMiddleware, userController.updateUserProfile);
 
+// @route   GET api/users/recommendations
+// @desc    Get recommended teammates based on skills
+// @access  Private
+router.get('/recommendations', authMiddleware, userController.getRecommendedTeammates);
+
 module.exports = router;

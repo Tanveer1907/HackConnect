@@ -5,7 +5,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const hackathonRoutes = require('./routes/hackathonRoutes');
-
+const teamRoutes = require('./routes/teamRoutes');
 const app = express();
 
 // Middlewares
@@ -27,5 +27,5 @@ app.use(passport.session());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/hackathons', hackathonRoutes);
-
+app.use('/api/team', teamRoutes);
 module.exports = app;

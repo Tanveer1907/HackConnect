@@ -70,3 +70,38 @@ exports.updateUserProfile = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
+
+exports.getRecommendedTeammates = async (req, res) => {
+    try {
+        const currentUser = await User.findById(req.user.user.id);
+        if (!currentUser) return res.status(404).json({ message: 'User not found' });
+
+        const potentialTeammates = await User.find({
+            _id: { $ne: currentUser._id },
+            lookingForTeam: true
+        }).select('-password');
+
+        const mySkillNames = currentUser.skills.map(s => s.name.toLowerCase());
+
+        const recommendations = potentialTeammates.map(user => {
+            let matchScore = 0;
+            user.skills.forEach(skill => {
+                if (mySkillNames.includes(skill.name.toLowerCase())) {
+                    matchScore += 10;
+                }
+            });
+            
+            return {
+                ...user.toObject(),
+                matchScore
+            };
+        });
+
+        recommendations.sort((a, b) => b.matchScore - a.matchScore);
+
+        res.json(recommendations);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
