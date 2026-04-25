@@ -80,9 +80,9 @@ export default function Navbar() {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
                             <span className="absolute top-0 right-[2px] w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full shadow-sm dark:border-[#0f172a] dark:shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
                         </button>
-                        <button className="text-slate-500 hover:text-slate-900 transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
+                        <Link to="/chat" className="text-slate-500 hover:text-slate-900 transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
-                        </button>
+                        </Link>
                         <button onClick={handleLogout} className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors hidden md:block dark:text-red-400 dark:hover:text-red-300 mx-2">
                             Logout
                         </button>
