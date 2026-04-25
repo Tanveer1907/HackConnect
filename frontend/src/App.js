@@ -9,6 +9,7 @@ import Hackathons from './pages/Hackathons';
 import Teams from './pages/Teams';
 import Dashboard from './pages/Dashboard';
 import HackathonDetails from './pages/HackathonDetails';
+import Chat from './pages/Chat';
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/teams" element={<Teams />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/hackathon/:id" element={<HackathonDetails />} />
+          <Route path="/chat" element={<Chat />} />
 
           <Route path="/signup" element={<Navigate to="/register" replace />} />
         </Routes>
