@@ -44,7 +44,7 @@ export default function HackathonDetails() {
 
                     <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
                         <div className="h-72 md:h-96 w-full relative group">
-                            <img src={hackathon.image} alt={hackathon.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 opacity-90 dark:opacity-80" />
+                            <img src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'} alt={hackathon.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 opacity-90 dark:opacity-80" />
                             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent dark:from-black/90 dark:via-gray-900/40"></div>
                             <div className="absolute bottom-8 left-8 right-8 text-white">
                                 <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block uppercase tracking-wider shadow-sm dark:bg-blue-500/80 dark:shadow-md">

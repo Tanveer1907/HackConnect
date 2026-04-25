@@ -5,23 +5,29 @@ import { getHackathons } from '../services/api';
 
 export default function Dashboard() {
     const [hackathons, setHackathons] = useState([]);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
-        const fetchHackathons = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const res = await getHackathons();
-                setHackathons(res.data);
-            } catch (err) {
-                console.error("Failed to fetch hackathons", err);
-                // Fallback dummy data mapped to screenshots
-                setHackathons([
-                    { id: 1, title: 'AI Innovation India', mode: 'ONLINE', location: 'Bangalore', duration: '48H', description: 'Build the future of generative AI. Solve real-world problems using the latest...', deadline: '2 Days 4h', joinedCount: 120, isStartsIn: false, image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80' },
-                    { id: 2, title: 'CyberShield India CTF', mode: 'HYBRID', location: 'Hyderabad', duration: '24H', description: 'Decentralize the future. Connect with top protocols and build dApps...', deadline: '5 Days', joinedCount: 45, isStartsIn: false, image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80' },
-                    { id: 3, title: 'FinTech India Hackathon', mode: 'OFFLINE', location: 'Mumbai', duration: '36H', description: 'Create solutions for a sustainable future. Focus on UI/UX and Impact.', deadline: 'Next Month', joinedCount: 128, isStartsIn: true, image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=600&q=80' }
+                // We'll fetch user profile to get the first name, AND hackathons array
+                const { getUserProfile, getHackathons } = require('../services/api');
+
+                const [userRes, hackathonsRes] = await Promise.all([
+                    getUserProfile().catch(() => ({ data: { name: 'Guest' } })),
+                    getHackathons().catch(() => ({ data: [] }))
                 ]);
+
+                setUser(userRes.data);
+                setHackathons(hackathonsRes.data);
+
+            } catch (err) {
+                console.error("Failed to fetch dashboard data", err);
+                setUser({ name: 'Guest' });
+                setHackathons([]);
             }
         };
-        fetchHackathons();
+        fetchDashboardData();
     }, []);
 
     return (
@@ -31,8 +37,10 @@ export default function Dashboard() {
 
                 <main className="flex-1 p-6 md:p-10 overflow-y-auto z-10">
                     <div className="mb-10">
-                        <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight drop-shadow-sm dark:text-white dark:drop-shadow-md">Welcome back, Aarav! 👋</h1>
-                        <p className="text-slate-600 font-medium dark:text-slate-400">You have 3 upcoming events and 2 pending team invites.</p>
+                        <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight drop-shadow-sm dark:text-white dark:drop-shadow-md">
+                            Welcome back{user?.name && user.name !== 'Guest' ? `, ${user.name.split(' ')[0]}` : ''}! 👋
+                        </h1>
+                        <p className="text-slate-600 font-medium dark:text-slate-400">You have upcoming events and pending team invites to manage.</p>
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-12">
@@ -53,7 +61,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                             <div className="w-full md:w-56 h-40 rounded-2xl bg-slate-900 overflow-hidden flex-shrink-0 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 relative group-hover:border-blue-500/30 transition-colors">
-                                <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=400&q=80" alt="Code" className="w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" />
+                                <img src="/assets/hackathons/global-game-jam.jpg" alt="Code" className="w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/60 to-transparent"></div>
                             </div>
                         </div>

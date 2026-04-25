@@ -9,25 +9,34 @@ export default function Profile() {
         const fetchProfile = async () => {
             try {
                 const res = await getUserProfile();
-                setProfile(res.data);
+                const u = res.data;
+                setProfile({
+                    name: u.name,
+                    email: u.email,
+                    role: u.role || 'Developer',
+                    university: u.university || 'Not specified',
+                    location: u.location || 'Not specified',
+                    joined: new Date(u.createdAt).toLocaleDateString() || 'Recently',
+                    bio: u.bio || 'No bio provided.',
+                    skills: u.skills || [],
+                    tags: ['React', 'Node.js', 'MongoDB'], // default tags
+                    lookingForTeam: u.lookingForTeam || false,
+                    profileImage: u.profileImage || ''
+                });
             } catch (err) {
                 console.error("Failed to fetch profile", err);
-                // Fallback for UI demonstration
+                // Set minimal fallback 
                 setProfile({
-                    name: 'Aarav Sharma',
-                    email: 'aarav.sharma@hackconnect.in',
-                    role: 'Full Stack Developer',
-                    university: 'Computer Science @ IIT Delhi',
-                    location: 'New Delhi, India',
-                    joined: 'Joined Aug 2024',
-                    bio: 'Passionate about building scalable tech solutions that solve real-world problems in India. I enjoy working on projects related to AI, fintech, and digital platforms that improve accessibility and efficiency. I have a strong foundation in data structures and algorithms and regularly participate in hackathons and coding competitions. When I\'m not coding, I enjoy playing cricket, exploring new technologies, and collaborating with other developers on innovative ideas.',
-                    skills: [
-                        { name: 'JavaScript / TypeScript', level: 90, type: 'Expert' },
-                        { name: 'React & Next.js', level: 80, type: 'Advanced' },
-                        { name: 'Python (Django/Flask)', level: 75, type: 'Advanced' },
-                        { name: 'UI/UX Design', level: 60, type: 'Intermediate' }
-                    ],
-                    tags: ['PostgreSQL', 'Docker', 'AWS', 'GraphQL', 'Tailwind CSS']
+                    name: 'Guest User',
+                    email: 'No Email',
+                    role: 'Visitor',
+                    university: 'Not specified',
+                    location: 'Not specified',
+                    joined: 'Today',
+                    bio: 'No bio provided.',
+                    skills: [],
+                    tags: [],
+                    profileImage: ''
                 });
             }
         };
@@ -48,9 +57,15 @@ export default function Profile() {
                         <div className="bg-white rounded-3xl border border-gray-200 p-8 md:p-10 shadow-sm mb-8 flex flex-col md:flex-row items-start gap-8 relative overflow-hidden transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full blur-[80px] pointer-events-none dark:bg-blue-500/10"></div>
 
-                            <div className="w-28 h-28 rounded-full bg-slate-100 border-4 border-white shadow-sm relative flex-shrink-0 z-10 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                                <img src="https://i.pravatar.cc/150?u=alex" alt="Profile" className="w-full h-full rounded-full object-cover" />
-                                <div className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full shadow-sm dark:border-slate-800 dark:shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                            <div className="w-28 h-28 rounded-full bg-slate-100 border-4 border-white shadow-sm relative flex-shrink-0 z-10 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] flex items-center justify-center overflow-hidden">
+                                {profile.profileImage ? (
+                                    <img src={profile.profileImage} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-[#4F46E5] to-[#3B82F6] flex items-center justify-center text-4xl font-extrabold text-white uppercase">
+                                        {profile.name ? profile.name.charAt(0) : 'U'}
+                                    </div>
+                                )}
+                                <div className="absolute bottom-1 right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full shadow-sm dark:border-slate-800 dark:shadow-[0_0_10px_rgba(16,185,129,0.5)] z-20"></div>
                             </div>
 
                             <div className="flex-1 w-full relative z-10">
@@ -60,11 +75,11 @@ export default function Profile() {
                                         <p className="text-blue-600 font-bold drop-shadow-sm dark:text-blue-400">{profile.role}</p>
                                     </div>
                                     <div className="flex gap-3 w-full md:w-auto">
-                                        <button className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]">
-                                            <span className="text-lg">👤+</span> Connect
-                                        </button>
-                                        <button className="flex-1 md:flex-none px-6 py-2.5 bg-white border border-gray-200 text-slate-700 font-bold rounded-xl hover:bg-gray-50 shadow-sm transition-all flex justify-center items-center gap-2 dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">
-                                            <span className="text-lg text-slate-500 dark:text-slate-300">✉️</span> Message
+                                        <button
+                                            onClick={() => window.location.href = '/edit-profile'}
+                                            className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"
+                                        >
+                                            <span className="text-lg">✏️</span> Edit Profile
                                         </button>
                                     </div>
                                 </div>
@@ -76,15 +91,17 @@ export default function Profile() {
                                     <div className="flex items-center gap-2"><span className="text-lg opacity-80">📧</span> {profile.email}</div>
                                 </div>
 
-                                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm dark:bg-blue-900/40 dark:border-blue-500/30 dark:shadow-inner">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="text-blue-600 text-lg drop-shadow-sm dark:text-blue-400 dark:drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]">📢</span>
-                                        <span className="font-extrabold text-slate-900 text-sm dark:text-white">Looking for a team</span>
+                                {profile.lookingForTeam && (
+                                    <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 shadow-sm dark:bg-blue-900/40 dark:border-blue-500/30 dark:shadow-inner">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-blue-600 text-lg drop-shadow-sm dark:text-blue-400 dark:drop-shadow-[0_0_5px_rgba(96,165,250,0.5)]">📢</span>
+                                            <span className="font-extrabold text-slate-900 text-sm dark:text-white">Looking for a team</span>
+                                        </div>
+                                        <p className="text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
+                                            I am currently open to joining teams for upcoming hackathons. Let's build something awesome together!
+                                        </p>
                                     </div>
-                                    <p className="text-sm text-slate-700 leading-relaxed font-medium dark:text-slate-300">
-                                        Currently looking for teammates for <strong className="text-slate-900 dark:text-white">Smart India Hackathon 2025</strong>. I specialize in backend development and scalable API architecture using Node.js and Python, and I also work with React for frontend development. Interested in AI/ML, fintech, and digital public infrastructure projects.
-                                    </p>
-                                </div>
+                                )}
                             </div>
                         </div>
 
@@ -117,6 +134,11 @@ export default function Profile() {
                                             </div>
                                         </div>
                                     ))}
+                                    {profile.skills.length === 0 && (
+                                        <div className="text-center p-6 border border-dashed border-gray-300 rounded-xl text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                                            No skills found. <a href="/edit-profile" className="text-blue-600 hover:underline">Add some skills</a> to your profile!
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex flex-wrap gap-2.5">

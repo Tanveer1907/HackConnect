@@ -2,10 +2,9 @@ const express = require('express');
 const cors = require('cors');
 
 // Import routes
-const authRoutes = require('./routes/auth.routes');
-const profileRoutes = require('./routes/profile.routes');
-const hackathonRoutes = require('./routes/hackathon.routes');
-const teamRoutes = require('./routes/team.routes');
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const hackathonRoutes = require('./routes/hackathonRoutes');
 
 const app = express();
 
@@ -13,10 +12,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const session = require('express-session');
+const passport = require('../config/passport');
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'hackconnect_secret',
+    resave: false,
+    saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/hackathons', hackathonRoutes);
-app.use('/api/team', teamRoutes);
 
 module.exports = app;

@@ -17,5 +17,7 @@ export const loginUser = (userData) => api.post('/auth/login', userData);
 export const getHackathons = () => api.get('/hackathons');
 export const getHackathonDetails = (id) => api.get(`/hackathons/${id}`);
 export const getUserProfile = () => api.get('/users/profile');
+export const updateUserProfile = (profileData) => api.put('/users/profile', profileData);
+export const getAllUsers = () => api.get('/users');
 
 export default api;

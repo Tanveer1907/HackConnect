@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -30,6 +31,7 @@ function App() {
 
           <Route path="/signup" element={<Navigate to="/register" replace />} />
         </Routes>
+        <Toaster position="top-right" />
       </div>
     </BrowserRouter>
   );

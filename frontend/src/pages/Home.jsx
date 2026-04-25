@@ -78,13 +78,13 @@ export default function Home() {
 
                     <div className="flex flex-col md:flex-row gap-8">
                         {[
-                            { tag: 'DISCOVERY', title: 'Global Hackathon List', desc: 'A curated, real-time list of global and local hackathons updated daily. Filter by location, prizes, or tech stack.' },
-                            { tag: 'NETWORKING', title: 'Smart Team Formation', desc: 'Our AI matching algorithm helps you find teammates with complementary skills to build the perfect balanced squad.' },
-                            { tag: 'CAREER', title: 'Internship Opportunities', desc: 'Connect directly with event sponsors and top tech companies looking to hire talent from hackathons.' }
+                            { tag: 'DISCOVERY', title: 'Global Hackathon List', desc: 'A curated, real-time list of global and local hackathons updated daily. Filter by location, prizes, or tech stack.', image: '/assets/features/hackathon-discovery.png' },
+                            { tag: 'NETWORKING', title: 'Smart Team Formation', desc: 'Our AI matching algorithm helps you find teammates with complementary skills to build the perfect balanced squad.', image: '/assets/features/team-formation.png' },
+                            { tag: 'CAREER', title: 'Internship Opportunities', desc: 'Connect directly with event sponsors and top tech companies looking to hire talent from hackathons.', image: '/assets/features/internship-opportunities.png' }
                         ].map((feature, i) => (
                             <div key={i} className="flex-1 bg-white rounded-2xl overflow-hidden border border-gray-200 transition-colors duration-300 dark:bg-slate-800/50 dark:border-white/10 dark:backdrop-blur-sm">
                                 <div className="h-48 bg-gray-200 dark:bg-slate-700">
-                                    <img src={`https://images.unsplash.com/photo-${1500000000000 + i}?auto=format&fit=crop&w=400&q=80`} className="w-full h-full object-cover opacity-90 dark:opacity-80" alt="feature" />
+                                    <img src={feature.image} className="w-full h-full object-cover opacity-90 dark:opacity-80" alt={feature.title} />
                                 </div>
                                 <div className="p-6">
                                     <div className="text-blue-600 text-xs font-bold mb-2.5 dark:text-blue-400">{feature.tag}</div>
@@ -109,8 +109,10 @@ export default function Home() {
             <footer className="bg-white px-10 py-16 border-t border-gray-200 transition-colors duration-300 dark:bg-slate-900/80 dark:border-t-white/10">
                 <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between gap-10">
                     <div>
-                        <div className="flex items-center gap-2 font-bold text-xl text-slate-900 mb-4 dark:text-white">
-                            <div className="w-6 h-6 bg-blue-600 rounded"></div>
+                        <div className="flex items-center gap-2 font-extrabold text-xl text-slate-900 mb-4 tracking-tight dark:text-white">
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_4px_10px_rgba(37,99,235,0.3)] dark:bg-blue-500 dark:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                            </div>
                             HackConnect
                         </div>
                         <p className="text-slate-500 text-sm max-w-xs dark:text-slate-400">Empowering the next generation of builders. Connect, create, and launch your career with HackConnect.</p>
