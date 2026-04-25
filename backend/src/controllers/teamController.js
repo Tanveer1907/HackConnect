@@ -61,7 +61,8 @@ exports.getMyTeams = async (req, res) => {
         const teams = await Team.find({ members: userId })
             .populate('hackathonId', 'title')
             .populate('leaderId', 'name')
-            .populate('members', 'name');
+            .populate('members', 'name')
+            .populate('pendingRequests', 'name email profileImage');
             
         res.json(teams);
     } catch (error) {

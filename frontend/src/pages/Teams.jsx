@@ -8,6 +8,11 @@ export default function Teams() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    // Filter states
+    const [skillFilter, setSkillFilter] = useState('');
+    const [uniFilter, setUniFilter] = useState('');
+    const [expFilter, setExpFilter] = useState('');
+
     useEffect(() => {
         const fetchUsers = async () => {
             try {
@@ -96,7 +101,7 @@ export default function Teams() {
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
-                            <input type="text" placeholder="Skills or Tech Stack" className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-white dark:placeholder-slate-400 dark:focus:bg-slate-800/80" />
+                            <input type="text" placeholder="Skills or Tech Stack" value={skillFilter} onChange={e => setSkillFilter(e.target.value)} className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-white dark:placeholder-slate-400 dark:focus:bg-slate-800/80" />
                         </div>
 
                         <div className="hidden md:block w-px bg-gray-200 my-2 dark:bg-white/10"></div>
@@ -105,7 +110,7 @@ export default function Teams() {
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 14v6.5"></path></svg>
                             </div>
-                            <input type="text" placeholder="College / University" className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-white dark:placeholder-slate-400 dark:focus:bg-slate-800/80" />
+                            <input type="text" placeholder="College / University" value={uniFilter} onChange={e => setUniFilter(e.target.value)} className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-white dark:placeholder-slate-400 dark:focus:bg-slate-800/80" />
                         </div>
 
                         <div className="hidden md:block w-px bg-gray-200 my-2 dark:bg-white/10"></div>
@@ -114,8 +119,8 @@ export default function Teams() {
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                             </div>
-                            <select className="block w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 appearance-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-slate-400 dark:focus:text-white dark:focus:bg-slate-800/80">
-                                <option value="" disabled selected>Experience Level</option>
+                            <select value={expFilter} onChange={e => setExpFilter(e.target.value)} className="block w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 appearance-none focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-slate-400 dark:focus:text-white dark:focus:bg-slate-800/80">
+                                <option value="">Experience Level</option>
                                 <option value="beginner">Beginner</option>
                                 <option value="intermediate">Intermediate</option>
                                 <option value="advanced">Advanced</option>
@@ -135,19 +140,30 @@ export default function Teams() {
                         </div>
                     ) : error ? (
                         <div className="text-center py-20 text-red-500 font-medium">{error}</div>
-                    ) : users.length === 0 ? (
-                        <div className="text-center py-20 text-slate-500 font-medium">No talents found.</div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {users.map((talent) => (
-                                <TeamCard
-                                    key={talent.id}
-                                    filterMatched={talent}
-                                    onInviteClick={(user) => setSelectedUser(user)}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    ) : (() => {
+                        // Apply filters
+                        const filteredList = users.filter(user => {
+                            const matchSkill = !skillFilter || user.skills?.some(s => s.name.toLowerCase().includes(skillFilter.toLowerCase()));
+                            const matchUni = !uniFilter || user.university.toLowerCase().includes(uniFilter.toLowerCase());
+                            return matchSkill && matchUni;
+                        });
+
+                        if (filteredList.length === 0) {
+                            return <div className="text-center py-20 text-slate-500 font-medium">No talents found matching your filters.</div>;
+                        }
+
+                        return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {filteredList.map((talent) => (
+                                    <TeamCard
+                                        key={talent.id}
+                                        filterMatched={talent}
+                                        onInviteClick={(user) => setSelectedUser(user)}
+                                    />
+                                ))}
+                            </div>
+                        );
+                    })()}
                 </section>
 
                 {/* VIEW MORE TALENTS */}

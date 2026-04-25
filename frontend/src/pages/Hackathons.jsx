@@ -30,7 +30,6 @@ export default function Hackathons() {
         };
 
         fetchHackathons();
-        fetchHackathons();
     }, [mode, domain]);
 
     if (loading) {
@@ -74,18 +73,11 @@ export default function Hackathons() {
 
                     <div className="mb-8">
                         <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Domain</h4>
-                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="domain" checked={domain === 'Web Development'} onChange={() => setDomain(domain === 'Web Development' ? '' : 'Web Development')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Web Development
-                        </label>
-                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="domain" checked={domain === 'AI & Machine Learning'} onChange={() => setDomain(domain === 'AI & Machine Learning' ? '' : 'AI & Machine Learning')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> AI & Machine Learning
-                        </label>
-                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="domain" checked={domain === 'Blockchain'} onChange={() => setDomain(domain === 'Blockchain' ? '' : 'Blockchain')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Blockchain
-                        </label>
-                        <label className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
-                            <input type="radio" name="domain" checked={domain === 'Cybersecurity'} onChange={() => setDomain(domain === 'Cybersecurity' ? '' : 'Cybersecurity')} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> Cybersecurity
-                        </label>
+                        {['AI/ML', 'Blockchain', 'Sustainability', 'Finance/Crypto', 'Healthcare/MedTech', 'Education', 'Cybersecurity', 'Gaming/AR/VR'].map((d) => (
+                            <label key={d} className="flex items-center gap-2.5 mb-2.5 text-sm text-slate-700 hover:text-blue-600 cursor-pointer transition-colors dark:text-slate-300 dark:hover:text-white">
+                                <input type="radio" name="domain" checked={domain === d} onChange={() => setDomain(domain === d ? '' : d)} className="accent-blue-600 w-4 h-4 cursor-pointer dark:accent-blue-500" /> {d}
+                            </label>
+                        ))}
                     </div>
 
                     <div className="bg-blue-50 p-5 rounded-xl border border-blue-200 mt-10 shadow-sm dark:bg-blue-900/20 dark:border-blue-500/20 dark:shadow-[0_4px_15px_rgba(59,130,246,0.1)]">
@@ -145,8 +137,8 @@ export default function Hackathons() {
                                 </div>
                                 <div className="p-5 flex flex-col h-[calc(100%-160px)]">
                                     <div className="flex gap-2.5 mb-4 flex-wrap">
-                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
-                                            {hackathon.mode === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
+                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode?.toUpperCase() === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode?.toUpperCase() === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
+                                            {hackathon.mode?.toUpperCase() === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode?.toUpperCase() === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
                                         </span>
                                         <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
                                             👥 Team Size: {hackathon.teamSize || 4}

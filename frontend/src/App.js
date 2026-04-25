@@ -13,15 +13,21 @@ import HackathonDetails from './pages/HackathonDetails';
 import Chat from './pages/Chat';
 import './App.css';
 
+// Simple guard to redirect logged-in users away from public pages
+const PublicRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('token');
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+};
+
 function App() {
   return (
     <BrowserRouter>
       <div className="App flex flex-col font-sans antialiased min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300 dark:text-slate-200 dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-[#0f172a] dark:to-black">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/hackathons" element={<Hackathons />} />
           <Route path="/teams" element={<Teams />} />
