@@ -11,6 +11,7 @@ import Teams from './pages/Teams';
 import Dashboard from './pages/Dashboard';
 import HackathonDetails from './pages/HackathonDetails';
 import Chat from './pages/Chat';
+import EditProfile from './pages/EditProfile';
 import './App.css';
 
 // Simple guard to redirect logged-in users away from public pages
@@ -41,6 +42,7 @@ const AppContent = () => {
 
         {/* Protected Routes */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
         <Route path="/hackathons" element={<ProtectedRoute><Hackathons /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
