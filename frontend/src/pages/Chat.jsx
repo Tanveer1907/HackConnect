@@ -1,10 +1,137 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
+import { getChatHistory, getMyChats, getUserProfile } from '../services/api';
 
 export default function Chat() {
     const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [chats, setChats] = useState([]);
+    const [currentRoom, setCurrentRoom] = useState('');
+    const socketRef = useRef(null);
+    const messagesEndRef = useRef(null);
+
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await getUserProfile();
+                setCurrentUser(res.data);
+            } catch (err) {
+                console.error('Failed to load user profile', err);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const currentRoomRef = useRef(currentRoom);
+
+    useEffect(() => {
+        currentRoomRef.current = currentRoom;
+    }, [currentRoom]);
+
+    const fetchChats = async () => {
+        try {
+            const res = await getMyChats();
+            setChats(res.data);
+            if (res.data.length > 0 && !currentRoomRef.current) {
+                setCurrentRoom(res.data[0].roomId);
+            }
+            // Join all active rooms so we receive messages for all of them
+            res.data.forEach(chat => {
+                if (socketRef.current) {
+                    socketRef.current.emit('join_room', { roomId: chat.roomId });
+                }
+            });
+        } catch (err) {
+            console.error('Failed to fetch sidebar chats', err);
+        }
+    };
+
+    useEffect(() => {
+        socketRef.current = io('http://localhost:5000');
+
+        socketRef.current.on('connect', () => {
+            console.log('Connected to socket server');
+            fetchChats();
+        });
+
+        socketRef.current.on('receive_message', (newMessage) => {
+            // Update messages panel if the message belongs to the currently open room
+            if (newMessage.roomId === currentRoomRef.current) {
+                setMessages((prev) => [...prev, newMessage]);
+                scrollToBottom();
+            }
+            
+            // Update the sidebar in real-time
+            setChats(prevChats => {
+                const existingChatIndex = prevChats.findIndex(c => c.roomId === newMessage.roomId);
+                let newChats = [...prevChats];
+                if (existingChatIndex >= 0) {
+                    newChats[existingChatIndex] = {
+                        ...newChats[existingChatIndex],
+                        latestMessage: newMessage
+                    };
+                } else {
+                    // New conversation started
+                    fetchChats();
+                    return prevChats;
+                }
+                // Sort by newest
+                return newChats.sort((a, b) => new Date(b.latestMessage?.createdAt || 0) - new Date(a.latestMessage?.createdAt || 0));
+            });
+        });
+
+        return () => {
+            socketRef.current.disconnect();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!currentRoom) return;
+
+        const fetchHistory = async () => {
+            try {
+                const res = await getChatHistory(currentRoom);
+                setMessages(res.data);
+                scrollToBottom();
+            } catch (err) {
+                console.error('Failed to fetch chat history', err);
+            }
+        };
+        fetchHistory();
+    }, [currentRoom]);
+
+    const scrollToBottom = () => {
+        setTimeout(() => {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    };
+
+    const sendMessage = async (e) => {
+        e.preventDefault();
+        if (!message.trim() || !currentRoom) return;
+
+        const messageData = {
+            roomId: currentRoom,
+            senderId: currentUser._id,
+            text: message
+        };
+
+        socketRef.current.emit('send_message', messageData);
+        setMessage('');
+    };
+
+    if (!currentUser) {
+        return (
+            <div className="flex-1 flex justify-center items-center bg-slate-50 dark:bg-[#0f172a] text-slate-500 min-h-0">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex-1 flex overflow-hidden bg-slate-50 dark:bg-[#0f172a] text-slate-800 dark:text-slate-300 font-sans h-[calc(100vh-80px)]">
+        <div className="flex-1 flex overflow-hidden bg-slate-50 dark:bg-[#0f172a] text-slate-800 dark:text-slate-300 font-sans min-h-0">
             
             {/* COLUMN 1: Main Sidebar */}
             <div className="hidden lg:flex flex-col w-[260px] bg-slate-100 dark:bg-[#111827] border-r border-gray-200 dark:border-white/5 pt-6 pb-4 px-4 shrink-0 transition-colors duration-300">
@@ -52,10 +179,14 @@ export default function Chat() {
                         Settings
                     </a>
                     <div className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-white/5 rounded-xl shadow-sm">
-                        <img src="https://i.pravatar.cc/150?u=alex" alt="Alex Rivera" className="w-10 h-10 rounded-full border border-gray-200 dark:border-slate-700"/>
-                        <div>
-                            <p className="text-sm font-bold text-slate-900 dark:text-white">Alex Rivera</p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">Pro Hackathoner</p>
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center font-bold text-blue-600 dark:text-blue-400 shrink-0">
+                            {currentUser.name ? currentUser.name.charAt(0) : (currentUser.username ? currentUser.username.charAt(0) : 'M')}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                {currentUser.name || currentUser.username || 'My Profile'}
+                            </p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">Online</p>
                         </div>
                     </div>
                 </div>
@@ -79,74 +210,38 @@ export default function Chat() {
 
                 {/* List */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-1">
-                    {/* Active Chat Item */}
-                    <div className="flex items-center gap-3 p-3 bg-slate-100 dark:bg-white/5 rounded-xl cursor-pointer relative group">
-                        <div className="relative shrink-0">
-                            <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah Chen" className="w-12 h-12 rounded-full object-cover border-2 border-white dark:border-[#1e293b] shadow-sm"/>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-100 dark:border-[#1e293b] rounded-full"></div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">Sarah Chen</h3>
-                                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">2:30 PM</span>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Let's refine the UI architect...</p>
-                        </div>
-                    </div>
+                    {chats.length === 0 && (
+                        <div className="p-4 text-center text-sm text-slate-500">No active chats. Wait for an invite!</div>
+                    )}
+                    {chats.map(chat => {
+                        const otherUser = chat.otherUser || {};
+                        const name = otherUser.profile ? `${otherUser.profile.firstName} ${otherUser.profile.lastName}` : otherUser.username;
+                        const initial = name ? name.charAt(0) : '?';
+                        const time = new Date(chat.latestMessage?.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const isActive = currentRoom === chat.roomId;
 
-                    {/* Other Chat Items */}
-                    <div className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="relative shrink-0">
-                            <img src="https://i.pravatar.cc/150?u=marcus" alt="Marcus Volt" className="w-12 h-12 rounded-full object-cover border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm"/>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Marcus Volt</h3>
-                                <span className="text-xs text-slate-400 dark:text-slate-500">1:45 PM</span>
+                        return (
+                            <div key={chat.roomId} 
+                                 onClick={() => setCurrentRoom(chat.roomId)}
+                                 className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors group ${isActive ? 'bg-slate-100 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
+                                <div className="relative shrink-0">
+                                    <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-lg font-bold text-blue-600 dark:text-blue-400 border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm">
+                                        {initial}
+                                    </div>
+                                    {isActive && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-100 dark:border-[#1e293b] rounded-full"></div>}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-baseline mb-0.5">
+                                        <h3 className={`text-sm font-bold truncate transition-colors ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                                            {name}
+                                        </h3>
+                                        <span className="text-xs text-slate-400 dark:text-slate-500">{time}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{chat.latestMessage?.text}</p>
+                                </div>
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Backend is ready for t...</p>
-                        </div>
-                        <div className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">3</div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="relative shrink-0">
-                            <img src="https://i.pravatar.cc/150?u=lina" alt="Lina Park" className="w-12 h-12 rounded-full object-cover border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm"/>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Lina Park</h3>
-                                <span className="text-xs text-slate-400 dark:text-slate-500">Yesterday</span>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Check out these Figma link...</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="relative shrink-0">
-                            <img src="https://i.pravatar.cc/150?u=dave" alt="Dave Morrison" className="w-12 h-12 rounded-full object-cover border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm"/>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Dave Morrison</h3>
-                                <span className="text-xs text-slate-400 dark:text-slate-500">Wednesday</span>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">The sponsorship docs are in.</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                        <div className="relative shrink-0 w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm text-slate-500 dark:text-slate-400">
-                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-baseline mb-0.5">
-                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Hack-A-Lot Group</h3>
-                                <span className="text-xs text-slate-400 dark:text-slate-500">Mon</span>
-                            </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Everyone ready for the pitch?</p>
-                        </div>
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -156,12 +251,19 @@ export default function Chat() {
                 <div className="h-[76px] px-6 border-b border-gray-200 dark:border-white/5 flex items-center justify-between bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-10 sticky top-0">
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah Chen" className="w-10 h-10 rounded-full object-cover"/>
+                            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-base font-bold text-blue-600 dark:text-blue-400">
+                                {chats.find(c => c.roomId === currentRoom)?.otherUser?.profile?.firstName?.charAt(0) || '?'}
+                            </div>
                             <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#0f172a] rounded-full"></div>
                         </div>
                         <div>
-                            <h2 className="font-bold text-slate-900 dark:text-white text-base">Sarah Chen</h2>
-                            <p className="text-[12px] text-blue-600 dark:text-blue-400 font-medium">Online • Product Designer</p>
+                            <h2 className="font-bold text-slate-900 dark:text-white text-base">
+                                {(() => {
+                                    const u = chats.find(c => c.roomId === currentRoom)?.otherUser;
+                                    return u ? (u.profile ? `${u.profile.firstName} ${u.profile.lastName}` : u.username) : 'Select a Chat';
+                                })()}
+                            </h2>
+                            <p className="text-[12px] text-blue-600 dark:text-blue-400 font-medium">Online</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 text-slate-500 dark:text-slate-400">
@@ -173,59 +275,37 @@ export default function Chat() {
 
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Date Divider */}
                     <div className="flex justify-center my-6">
-                        <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-white/5 rounded-full border border-gray-200 dark:border-white/10">Today, 2:30 PM</span>
+                        <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-200 dark:bg-white/5 rounded-full border border-gray-200 dark:border-white/10">Today</span>
                     </div>
 
-                    {/* Received Message */}
-                    <div className="flex items-end gap-3 max-w-[80%]">
-                        <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" className="w-8 h-8 rounded-full mb-1" />
-                        <div className="bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/5 rounded-[20px] rounded-bl-sm p-4 text-[14px] text-slate-700 dark:text-slate-200 shadow-sm leading-relaxed">
-                            Hey Alex! Just saw your profile on the HackConnect board. Your expertise in glassmorphism and UI architecture is exactly what our team needs for the FinTech challenge.
-                        </div>
-                    </div>
-
-                    {/* Sent Message */}
-                    <div className="flex justify-end max-w-[80%] ml-auto">
-                        <div className="flex flex-col items-end">
-                            <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-[20px] rounded-br-sm p-4 text-[14px] shadow-[0_4px_15px_rgba(59,130,246,0.2)] leading-relaxed">
-                                Thanks for reaching out, Sarah! I've been following your work on Dribbble. The FinTech track sounds exciting. Are you looking to build something with a heavy focus on data visualization?
+                    {messages.map((msg, index) => {
+                        const isMe = msg.sender?._id === currentUser._id || msg.sender === currentUser._id;
+                        
+                        return isMe ? (
+                            <div key={msg._id || index} className="flex justify-end max-w-[80%] ml-auto">
+                                <div className="flex flex-col items-end">
+                                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-[20px] rounded-br-sm p-4 text-[14px] shadow-[0_4px_15px_rgba(59,130,246,0.2)] leading-relaxed break-words">
+                                        {msg.text}
+                                    </div>
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 mr-1 font-medium">
+                                        {new Date(msg.createdAt || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </span>
+                                </div>
                             </div>
-                            <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 mr-1 font-medium">2:34 PM • Read</span>
-                        </div>
-                    </div>
-
-                    {/* Received Message */}
-                    <div className="flex items-end gap-3 max-w-[80%]">
-                        <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" className="w-8 h-8 rounded-full mb-1" />
-                        <div className="bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/5 rounded-[20px] rounded-bl-sm p-4 text-[14px] text-slate-700 dark:text-slate-200 shadow-sm leading-relaxed">
-                            Exactly. We're thinking of a real-time portfolio analyzer that uses a crystalline interface to represent market volatility. We have two solid backend devs already.
-                        </div>
-                    </div>
-
-                    {/* Sent Message */}
-                    <div className="flex justify-end max-w-[80%] ml-auto">
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-[20px] rounded-br-sm p-4 text-[14px] shadow-[0_4px_15px_rgba(59,130,246,0.2)] leading-relaxed">
-                            That sounds perfect. I've actually been experimenting with some heavy backdrop-blur techniques that would work beautifully for that "crystalline" look.
-                        </div>
-                    </div>
-
-                    {/* Received Message */}
-                    <div className="flex items-end gap-3 max-w-[80%]">
-                        <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah" className="w-8 h-8 rounded-full mb-1" />
-                        <div className="bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/5 rounded-[20px] rounded-bl-sm p-4 text-[14px] text-slate-700 dark:text-slate-200 shadow-sm leading-relaxed">
-                            Love that! Let's jump on a quick call at 4:00 PM to sync on the tech stack? I'll add you to the project group here.
-                        </div>
-                    </div>
+                        ) : (
+                            <div key={msg._id || index} className="flex items-end gap-3 max-w-[80%]">
+                                <div className="w-8 h-8 rounded-full mb-1 bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-sm font-bold text-slate-700 dark:text-slate-200 uppercase shrink-0">
+                                    {msg.sender?.profile?.firstName?.charAt(0) || msg.sender?.username?.charAt(0) || '?'}
+                                </div>
+                                <div className="bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-white/5 rounded-[20px] rounded-bl-sm p-4 text-[14px] text-slate-700 dark:text-slate-200 shadow-sm leading-relaxed break-words">
+                                    {msg.text}
+                                </div>
+                            </div>
+                        );
+                    })}
                     
-                    {/* Sent Message */}
-                    <div className="flex justify-end max-w-[80%] ml-auto">
-                        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-[20px] rounded-br-sm p-4 text-[14px] shadow-[0_4px_15px_rgba(59,130,246,0.2)] leading-relaxed">
-                            Sounds like a plan. I'll have some moodboards ready to share by then. 🚀
-                        </div>
-                    </div>
-                     <div ref={(el) => { el?.scrollIntoView() }} />
+                    <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Area */}
@@ -238,36 +318,47 @@ export default function Chat() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
                         </button>
                         
-                        <div className="flex-1 relative">
-                            <input 
-                                type="text"
-                                value={message}
-                                onChange={(e) => setMessage(e.target.value)}
-                                placeholder="Type a message to Sarah..."
-                                className="w-full bg-slate-100 dark:bg-[#1e293b]/80 border border-transparent dark:border-white/5 rounded-full pl-5 pr-12 py-3 text-[14px] text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-inner"
-                            />
-                            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 p-1 transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </button>
-                        </div>
+                        <form onSubmit={sendMessage} className="flex-1 relative flex gap-3">
+                            <div className="flex-1 relative">
+                                <input 
+                                    type="text"
+                                    value={message}
+                                    onChange={(e) => setMessage(e.target.value)}
+                                    placeholder="Type a message..."
+                                    className="w-full bg-slate-100 dark:bg-[#1e293b]/80 border border-transparent dark:border-white/5 rounded-full pl-5 pr-12 py-3 text-[14px] text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shadow-inner"
+                                />
+                            </div>
 
-                        <button className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shrink-0 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 transition-all">
-                            <svg className="w-5 h-5 transform -rotate-45 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                        </button>
+                            <button type="submit" className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shrink-0 hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 transition-all">
+                                <svg className="w-5 h-5 transform -rotate-45 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
 
             {/* COLUMN 4: Right Detail Sidebar */}
             <div className="hidden xl:flex flex-col w-[300px] bg-white dark:bg-[#1e293b] border-l border-gray-200 dark:border-white/5 py-8 px-6 shrink-0 transition-colors duration-300">
-                <div className="flex flex-col items-center mb-8">
-                    <div className="relative mb-4">
-                        <img src="https://i.pravatar.cc/150?u=sarah" alt="Sarah Chen" className="w-24 h-24 rounded-[1.5rem] object-cover border-4 border-slate-50 dark:border-[#0f172a] shadow-lg"/>
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-slate-50 dark:border-[#0f172a] rounded-full"></div>
+                {currentRoom && chats.find(c => c.roomId === currentRoom)?.otherUser ? (() => {
+                    const other = chats.find(c => c.roomId === currentRoom).otherUser;
+                    const name = other.name || other.username || 'User';
+                    return (
+                        <div className="flex flex-col items-center mb-8">
+                            <div className="relative mb-4">
+                                <div className="w-24 h-24 rounded-[1.5rem] bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-4xl font-bold text-blue-600 dark:text-blue-400 border-4 border-slate-50 dark:border-[#0f172a] shadow-lg">
+                                    {name.charAt(0)}
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-slate-50 dark:border-[#0f172a] rounded-full"></div>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{name}</h2>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">@{other.username || 'user'}</p>
+                        </div>
+                    );
+                })() : (
+                    <div className="flex flex-col items-center mb-8 text-center text-slate-500">
+                        <p>Select a chat to view details</p>
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Sarah Chen</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">@sarah_codes</p>
-                </div>
+                )}
 
                 <div className="mb-8">
                     <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-4">Media & Links</h3>

@@ -96,6 +96,20 @@ exports.sendTeamRequest = async (req, res) => {
         team.pendingRequests.push(userId);
         await team.save();
 
+        // Create automated chat message for the team leader
+        const Message = require('../models/Message');
+        const sortedIds = [userId.toString(), team.leaderId.toString()].sort();
+        const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
+        
+        if (userId.toString() !== team.leaderId.toString()) {
+            const automatedMessage = new Message({
+                roomId: roomId,
+                sender: userId,
+                text: `I would like to join your team: ${team.name}`
+            });
+            await automatedMessage.save();
+        }
+
         res.json({ message: 'Team request sent successfully', team });
     } catch (error) {
         console.error(error.message);

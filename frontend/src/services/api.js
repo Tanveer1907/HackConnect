@@ -29,4 +29,8 @@ export const acceptTeamRequest = (teamId, data) => api.put(`/team/${teamId}/acce
 // --- Recommendation Endpoint ---
 export const getRecommendedTeammates = () => api.get('/users/recommendations');
 
+// --- Chat Endpoint ---
+export const getChatHistory = (roomId) => api.get(`/chat/${roomId}`);
+export const getMyChats = () => api.get('/chat/my-chats');
+
 export default api;
