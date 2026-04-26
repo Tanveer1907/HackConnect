@@ -13,24 +13,53 @@ export default function Navbar() {
 
     useEffect(() => {
         const fetchUserAndNotifications = async () => {
-            if (localStorage.getItem('token')) {
+            if (token) {
                 try {
                     const res = await getUserProfile();
-                    setUser(res.data);
+                    const userData = res.data;
+                    setUser(userData);
                     
-                    // Fetch chats to see if there are any invites/messages
+                    // If we are currently on the chat page, mark as seen immediately
+                    if (location.pathname === '/chat') {
+                        localStorage.setItem('lastChatVisit', Date.now().toString());
+                        setHasNotifications(false);
+                        return;
+                    }
+
+                    // Fetch chats to see if there are NEW messages
                     const { getMyChats } = await import('../services/api');
                     const chatRes = await getMyChats();
+                    
+                    const lastVisit = parseInt(localStorage.getItem('lastChatVisit') || '0');
+                    
                     if (chatRes.data && chatRes.data.length > 0) {
-                        setHasNotifications(true);
+                        const hasUnread = chatRes.data.some(chat => {
+                            const lastMsg = chat.latestMessage;
+                            if (!lastMsg) return false;
+                            
+                            // It's unread if:
+                            // 1. It's not from me
+                            // 2. It was created after my last visit
+                            const isFromOthers = lastMsg.sender !== userData._id && lastMsg.sender?._id !== userData._id;
+                            const isNew = new Date(lastMsg.createdAt).getTime() > lastVisit;
+                            
+                            return isFromOthers && isNew;
+                        });
+                        setHasNotifications(hasUnread);
                     }
                 } catch (err) {
-                    // silently ignore if token is invalid or user not found
+                    // silently ignore
                 }
             }
         };
         fetchUserAndNotifications();
-    }, [token]);
+        
+        // Also clear notification if user navigates TO chat
+        if (location.pathname === '/chat') {
+            setHasNotifications(false);
+            localStorage.setItem('lastChatVisit', Date.now().toString());
+        }
+    }, [token, location.pathname]);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -86,13 +115,10 @@ export default function Navbar() {
                 {token ? (
                     <>
                         <Link to="/chat" className="text-slate-500 hover:text-slate-900 relative transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                            {hasNotifications && (
-                                <span className="absolute top-0 right-[2px] w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full shadow-sm dark:border-[#0f172a] dark:shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
-                            )}
-                        </Link>
-                        <Link to="/chat" className="text-slate-500 hover:text-slate-900 transition-all duration-300 hover:scale-110 dark:text-slate-400 dark:hover:text-white dark:hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+                            {hasNotifications && (
+                                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-[#0f172a] shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-pulse"></span>
+                            )}
                         </Link>
                         <button onClick={handleLogout} className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors hidden md:block dark:text-red-400 dark:hover:text-red-300 mx-2">
                             Logout

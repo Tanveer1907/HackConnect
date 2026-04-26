@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { getChatHistory, getMyChats, getUserProfile } from '../services/api';
 
@@ -30,7 +30,7 @@ export default function Chat() {
         currentRoomRef.current = currentRoom;
     }, [currentRoom]);
 
-    const fetchChats = async () => {
+    const fetchChats = useCallback(async () => {
         try {
             const res = await getMyChats();
             setChats(res.data);
@@ -46,20 +46,39 @@ export default function Chat() {
         } catch (err) {
             console.error('Failed to fetch sidebar chats', err);
         }
-    };
+    }, []);
+
+    // Periodically re-fetch chats to pick up new conversations and join their rooms
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (socketRef.current?.connected) {
+                fetchChats();
+            }
+        }, 5000); // Check for new conversations every 5 seconds
+        return () => clearInterval(interval);
+    }, [fetchChats]);
 
     useEffect(() => {
+        if (!currentUser) return; // Wait until user is loaded
+
         socketRef.current = io('http://localhost:5000');
 
         socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
+            // Join personal room for direct message delivery
+            socketRef.current.emit('authenticate', { userId: currentUser._id });
             fetchChats();
         });
 
         socketRef.current.on('receive_message', (newMessage) => {
-            // Update messages panel if the message belongs to the currently open room
+            // Always update messages if the message belongs to the currently open room
             if (newMessage.roomId === currentRoomRef.current) {
-                setMessages((prev) => [...prev, newMessage]);
+                setMessages((prev) => {
+                    // Avoid duplicates (in case both socket and polling deliver the same msg)
+                    const exists = prev.some(m => m._id === newMessage._id);
+                    if (exists) return prev;
+                    return [...prev, newMessage];
+                });
                 scrollToBottom();
             }
             
@@ -73,7 +92,7 @@ export default function Chat() {
                         latestMessage: newMessage
                     };
                 } else {
-                    // New conversation started
+                    // New conversation started — re-fetch to join the new room
                     fetchChats();
                     return prevChats;
                 }
@@ -83,12 +102,15 @@ export default function Chat() {
         });
 
         return () => {
-            socketRef.current.disconnect();
+            if (socketRef.current) socketRef.current.disconnect();
         };
-    }, []);
+    }, [currentUser, fetchChats]);
 
     useEffect(() => {
         if (!currentRoom) return;
+
+        // Mark as seen when entering a room
+        localStorage.setItem('lastChatVisit', Date.now().toString());
 
         const fetchHistory = async () => {
             try {

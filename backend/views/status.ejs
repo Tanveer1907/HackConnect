@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f0f1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #e94560;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid #1a1a3e;
+        }
+        .card h2 {
+            font-size: 1.1rem;
+            color: #e94560;
+            margin-bottom: 16px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #1a1a3e;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #888; }
+        .info-value { color: #4ecca3; font-weight: 600; }
+        .status-badge {
+            background: #1b4332;
+            color: #4ecca3;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .route-list { list-style: none; }
+        .route-list li {
+            padding: 10px 16px;
+            background: #0f0f1a;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: #7b8cde;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+        .render-note {
+            text-align: center;
+            margin-top: 12px;
+            padding: 12px;
+            background: #1a1a3e;
+            border-radius: 8px;
+            color: #888;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><%= title %></h1>
+        <p class="subtitle">This page is rendered using <strong>EJS (Embedded JavaScript)</strong> — a server-side template engine.</p>
+
+        <div class="card">
+            <h2>Server Information</h2>
+            <div class="info-row">
+                <span class="info-label">Status</span>
+                <span class="status-badge">● Running</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Environment</span>
+                <span class="info-value"><%= env %></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Uptime</span>
+                <span class="info-value"><%= uptime %> seconds</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Rendered At</span>
+                <span class="info-value"><%= new Date().toLocaleString() %></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>API Routes (<%= routes.length %>)</h2>
+            <ul class="route-list">
+                <% routes.forEach(function(route) { %>
+                    <li><%= route %></li>
+                <% }) %>
+            </ul>
+        </div>
+
+        <div class="render-note">
+            This page was <strong>server-side rendered (SSR)</strong> by Express + EJS.<br>
+            The React frontend uses <strong>client-side rendering (CSR)</strong> on a separate port.
+        </div>
+
+        <p class="footer">HackConnect &copy; <%= new Date().getFullYear() %></p>
+    </div>
+</body>
+</html>
