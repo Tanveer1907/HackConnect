@@ -6,6 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const hackathonRoutes = require('./routes/hackathonRoutes');
 const teamRoutes = require('./routes/teamRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 const app = express();
 
 // Middlewares
@@ -28,4 +29,5 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/hackathons', hackathonRoutes);
 app.use('/api/team', teamRoutes);
+app.use('/api/chat', chatRoutes);
 module.exports = app;

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import TeamCard from '../components/TeamCard';
 import { getAllUsers, getUserProfile, getRecommendedTeammates } from '../services/api';
+import { io } from 'socket.io-client';
 
 export default function Teams() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [inviteMessage, setInviteMessage] = useState('');
 
     // Filter states
     const [skillFilter, setSkillFilter] = useState('');
@@ -23,6 +26,7 @@ export default function Teams() {
                     try {
                         const profileObj = await getUserProfile();
                         currentUserId = profileObj.data._id;
+                        setCurrentUser(profileObj.data);
                         response = await getRecommendedTeammates();
                     } catch (e) {
                         response = await getAllUsers();
@@ -158,7 +162,10 @@ export default function Teams() {
                                     <TeamCard
                                         key={talent.id}
                                         filterMatched={talent}
-                                        onInviteClick={(user) => setSelectedUser(user)}
+                                        onInviteClick={(user) => {
+                                            setSelectedUser(user);
+                                            setInviteMessage(`Hey ${user.name?.split(' ')[0]}! I saw you have great experience with ${user.skills && user.skills.length > 0 ? user.skills[0].name : 'your tech stack'}. We are looking for a teammate who can handle the ${user.major && user.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${user.major && user.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`);
+                                        }}
                                     />
                                 ))}
                             </div>
@@ -264,7 +271,8 @@ export default function Teams() {
                                 <textarea
                                     rows="4"
                                     className="w-full p-4 bg-white border border-gray-300 rounded-xl text-[13.5px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all resize-none leading-relaxed shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:text-slate-300 dark:focus:border-blue-500/50 dark:shadow-inner"
-                                    defaultValue={`Hey ${selectedUser.name?.split(' ')[0]}! I saw you have great experience with ${selectedUser.skills && selectedUser.skills.length > 0 ? selectedUser.skills[0].name : 'your tech stack'}. We are looking for a teammate who can handle the ${selectedUser.major && selectedUser.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${selectedUser.major && selectedUser.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`}
+                                    value={inviteMessage}
+                                    onChange={(e) => setInviteMessage(e.target.value)}
                                 ></textarea>
                             </div>
 
@@ -286,7 +294,26 @@ export default function Teams() {
                             </button>
                             <button
                                 className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 shadow-sm transition-all text-center dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5"
-                                onClick={() => setSelectedUser(null)}
+                                onClick={() => {
+                                    if (currentUser && selectedUser) {
+                                        const socket = io('http://localhost:5000');
+                                        socket.on('connect', () => {
+                                            const sortedIds = [currentUser._id.toString(), selectedUser.id.toString()].sort();
+                                            const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
+                                            socket.emit('send_message', {
+                                                roomId,
+                                                senderId: currentUser._id,
+                                                text: inviteMessage,
+                                                createdAt: new Date().toISOString()
+                                            });
+                                            setTimeout(() => {
+                                                socket.disconnect();
+                                            }, 500); // give it time to emit
+                                        });
+                                    }
+                                    setSelectedUser(null);
+                                    alert("Invitation sent successfully!");
+                                }}
                             >
                                 Send Invitation
                             </button>
