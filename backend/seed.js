@@ -6,10 +6,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // Connect to DB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGO_URI);
 
 // Import models
 const Hackathon = require('./src/models/Hackathon');
@@ -79,35 +76,35 @@ const seedDatabase = async () => {
                 name: "Aarav Sharma",
                 email: "aarav.s@iitd.ac.in",
                 password: hashedPassword,
-                skills: ["React", "Python", "FastAPI"],
+                skills: [{name: "React"}, {name: "Python"}, {name: "FastAPI"}],
                 bio: "Backend developer from IIT Delhi looking for challenging hackathons."
             },
             {
                 name: "Priya Verma",
                 email: "priya.v@iitb.ac.in",
                 password: hashedPassword,
-                skills: ["Figma", "Tailwind", "UI/UX"],
+                skills: [{name: "Figma"}, {name: "Tailwind"}, {name: "UI/UX"}],
                 bio: "Designer from IIT Bombay passionate about user experience."
             },
             {
                 name: "Rohan Mehta",
                 email: "rohan.m@bits-pilani.ac.in",
                 password: hashedPassword,
-                skills: ["TensorFlow", "PyTorch", "AWS"],
+                skills: [{name: "TensorFlow"}, {name: "PyTorch"}, {name: "AWS"}],
                 bio: "Data Science student at BITS Pilani building cool ML models."
             },
             {
                 name: "Ananya Gupta",
                 email: "ananya.g@vit.ac.in",
                 password: hashedPassword,
-                skills: ["Node.js", "Express", "MongoDB"],
+                skills: [{name: "Node.js"}, {name: "Express"}, {name: "MongoDB"}],
                 bio: "Fullstack web developer from VIT Vellore."
             },
             {
                 name: "Aditya Kapoor",
                 email: "aditya.k@nitt.edu",
                 password: hashedPassword,
-                skills: ["Ethical Hacking", "Linux", "Python"],
+                skills: [{name: "Ethical Hacking"}, {name: "Linux"}, {name: "Python"}],
                 bio: "Cybersecurity enthusiast from NIT Trichy."
             }
         ];
