@@ -296,7 +296,7 @@ export default function Teams() {
                                 className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 shadow-sm transition-all text-center dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5"
                                 onClick={() => {
                                     if (currentUser && selectedUser) {
-                                        const socket = io('http://localhost:5000');
+                                        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
                                         socket.on('connect', () => {
                                             const sortedIds = [currentUser._id.toString(), selectedUser.id.toString()].sort();
                                             const roomId = `${sortedIds[0]}-${sortedIds[1]}`;

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - HackConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="antialiased font-sans text-slate-800 overflow-x-hidden transition-colors duration-300 dark:bg-[#0f172a] dark:text-slate-200">
+    <div class="flex flex-col flex-1 min-h-screen">
+        <div class="flex flex-1 overflow-hidden max-w-[1600px] w-full mx-auto relative">
+            <%- include('partials/sidebar') %>
+
+            <main class="flex-1 p-6 md:p-10 overflow-y-auto z-10 bg-slate-50 dark:bg-transparent">
+                <div class="flex justify-between items-end mb-8 mt-4">
+                    <h2 class="text-3xl font-extrabold text-slate-900 drop-shadow-sm dark:text-white">User Management</h2>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5">
+                        Add New User
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm transition-all duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
+                    <div class="mb-6 flex justify-between items-center">
+                        <h3 class="font-extrabold text-xl text-slate-900 dark:text-white">Registered Users Database</h3>
+                        <div class="relative">
+                            <input type="text" placeholder="Search users..." class="pl-4 pr-10 py-2.5 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 placeholder-slate-500 focus:ring-1 focus:ring-blue-500 focus:bg-white transition-all shadow-inner dark:bg-slate-800/50 dark:border-transparent dark:focus:border-blue-500/50 dark:text-white dark:placeholder-slate-400 dark:focus:bg-slate-800/80">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-white/10">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-gray-200 dark:bg-slate-800/50 dark:border-white/10">
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">User ID</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Profile</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Email</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Role</th>
+                                    <th class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider dark:text-slate-400">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (users && users.length > 0) { %>
+                                    <% users.forEach(user => { %>
+                                        <tr class="border-b border-gray-100 hover:bg-slate-50/50 transition-colors dark:border-white/5 dark:hover:bg-white/5">
+                                            <td class="p-4 text-sm font-mono text-slate-500 dark:text-slate-400"><%= user._id.toString().substring(0, 8) %>...</td>
+                                            <td class="p-4">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold shadow-sm">
+                                                        <%= user.username ? user.username.charAt(0).toUpperCase() : 'U' %>
+                                                    </div>
+                                                    <span class="text-sm font-bold text-slate-900 dark:text-white"><%= user.username %></span>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-sm font-medium text-slate-600 dark:text-slate-300"><%= user.email %></td>
+                                            <td class="p-4">
+                                                <span class="px-3 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded-full text-xs font-bold dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-500/30">User</span>
+                                            </td>
+                                            <td class="p-4">
+                                                <span class="px-3 py-1 bg-green-50 text-green-600 border border-green-200 rounded-full text-xs font-bold dark:bg-green-900/30 dark:text-green-400 dark:border-green-500/30">Active</span>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="5" class="p-8 text-center text-slate-500 dark:text-slate-400">No users found in database.</td>
+                                    </tr>
+                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

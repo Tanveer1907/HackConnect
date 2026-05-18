@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Upload - HackConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="antialiased font-sans text-slate-800 overflow-x-hidden transition-colors duration-300 dark:bg-[#0f172a] dark:text-slate-200">
+    <div class="flex flex-col flex-1 min-h-screen">
+        <div class="flex flex-1 overflow-hidden max-w-[1600px] w-full mx-auto relative">
+            <%- include('partials/sidebar') %>
+
+            <main class="flex-1 p-6 md:p-10 overflow-y-auto z-10 bg-slate-50 dark:bg-transparent">
+                <div class="mb-10">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight drop-shadow-sm dark:text-white dark:drop-shadow-md">
+                        Media Upload ☁️
+                    </h1>
+                    <p class="text-slate-600 font-medium dark:text-slate-400">Test the Multer + Cloudinary form-data upload pipeline.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Upload Form -->
+                    <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm transition-all duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
+                        <form enctype="multipart/form-data" class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2 dark:text-slate-300">Upload Type</label>
+                                <div class="relative">
+                                    <select name="type" class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-gray-200 focus:border-blue-500 rounded-xl text-sm font-medium text-slate-900 appearance-none focus:ring-1 focus:ring-blue-500 transition-all shadow-inner dark:bg-slate-800/80 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50">
+                                        <option value="avatar">User Avatar</option>
+                                        <option value="banner">Hackathon Banner</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2 dark:text-slate-300">Select Image</label>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl hover:border-blue-500 transition-colors bg-slate-50 dark:bg-slate-800/50 dark:border-white/20 dark:hover:border-blue-500/50">
+                                    <div class="space-y-1 text-center">
+                                        <svg class="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                        <div class="flex text-sm text-slate-600 dark:text-slate-400 justify-center">
+                                            <label for="file-upload" class="relative cursor-pointer bg-transparent rounded-md font-bold text-blue-600 hover:text-blue-500 focus-within:outline-none dark:text-blue-400 dark:hover:text-blue-300">
+                                                <span>Upload a file</span>
+                                                <input id="file-upload" name="media" type="file" class="sr-only" accept="image/*,application/pdf">
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p class="text-xs text-slate-500 font-medium">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 transition-all">
+                                Upload to Cloudinary
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div class="bg-gradient-to-br from-slate-900 to-[#0f172a] rounded-3xl p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 text-white relative overflow-hidden">
+                        <div class="absolute top-[-20%] right-[-10%] w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none"></div>
+                        <h3 class="text-xl font-extrabold mb-6 flex items-center drop-shadow-md">
+                            <span class="text-yellow-400 mr-2">⚡</span>
+                            Implementation Notes
+                        </h3>
+                        <div class="space-y-4 text-slate-300 text-sm leading-relaxed relative z-10">
+                            <p>This form uses <code class="bg-white/10 px-1.5 py-0.5 rounded text-blue-300 font-mono text-xs border border-white/10">enctype="multipart/form-data"</code> which is strictly required for file uploads to work in Express.</p>
+                            <p>When submitted, the Express route uses <strong>Multer</strong> to intercept the file, and <strong>multer-storage-cloudinary</strong> streams it directly to your Cloudinary account without saving it to disk.</p>
+                            <div class="bg-black/40 p-4 rounded-xl font-mono text-xs overflow-x-auto text-emerald-400 border border-white/5 shadow-inner">
+                                const upload = multer({ storage: cloudinaryStorage });<br>
+                                router.post('/upload', upload.single('image'), (req, res) => {<br>
+                                &nbsp;&nbsp;console.log(req.file.path); // Cloudinary URL<br>
+                                });
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            if(e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                const labelSpan = document.querySelector('label[for="file-upload"] span');
+                labelSpan.textContent = fileName;
+                labelSpan.classList.add('text-emerald-500');
+            }
+        });
+
+        const form = document.querySelector('form');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent standard page reload
+
+            const formData = new FormData(form);
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Uploading to Cloudinary...';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                const response = await fetch('/api/admin/upload', {
+                    method: 'POST',
+                    body: formData // Note: We do NOT set Content-Type header manually when using FormData!
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Upload Success! Cloudinary URL: ' + data.url);
+                    // Reset form
+                    form.reset();
+                    document.querySelector('label[for="file-upload"] span').textContent = 'Upload a file';
+                    document.querySelector('label[for="file-upload"] span').classList.remove('text-emerald-500');
+                } else {
+                    alert('Upload Failed: ' + (data.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('A network error occurred.');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        });
+    </script>
+</body>
+</html>

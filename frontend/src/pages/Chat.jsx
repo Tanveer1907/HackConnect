@@ -61,7 +61,7 @@ export default function Chat() {
     useEffect(() => {
         if (!currentUser) return; // Wait until user is loaded
 
-        socketRef.current = io('http://localhost:5000');
+        socketRef.current = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
 
         socketRef.current.on('connect', () => {
             console.log('Connected to socket server');
