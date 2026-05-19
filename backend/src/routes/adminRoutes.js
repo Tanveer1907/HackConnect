@@ -191,4 +191,16 @@ router.post('/hackathons', isAdmin, upload.single('banner'), async (req, res) =>
     }
 });
 
+// @route   POST /api/admin/hackathons/:id/delete
+// @desc    Delete a hackathon
+router.post('/hackathons/:id/delete', isAdmin, async (req, res) => {
+    try {
+        await Hackathon.findByIdAndDelete(req.params.id);
+        res.redirect('/hackathons');
+    } catch (err) {
+        console.error('Error deleting hackathon:', err);
+        res.status(500).send('Server Error deleting hackathon');
+    }
+});
+
 module.exports = router;
