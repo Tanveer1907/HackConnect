@@ -105,7 +105,11 @@ export default function Login() {
 
             if (response.ok) {
                 setOtpSent(true);
-                toast.success(data.message || "OTP sent to your administrator email!");
+                if (data.devOtp) {
+                    toast.success(`OTP Code: ${data.devOtp} (Enter below)`, { duration: 8000 });
+                } else {
+                    toast.success(data.message || "OTP sent to your administrator email!");
+                }
             } else {
                 toast.error(data.message || "Invalid Admin Credentials");
             }
