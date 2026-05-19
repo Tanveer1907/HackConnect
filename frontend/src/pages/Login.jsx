@@ -141,7 +141,7 @@ export default function Login() {
                 // Save admin token if needed
                 localStorage.setItem('adminToken', data.token);
                 toast.success("Admin Verified! Redirecting to secure portal...");
-                window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/dashboard`;
+                window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/dashboard?token=${data.token}`;
             } else {
                 toast.error(data.message || "Invalid or Expired OTP");
             }

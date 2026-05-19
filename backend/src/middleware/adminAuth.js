@@ -1,7 +1,20 @@
 const jwt = require('jsonwebtoken');
 
 const isAdmin = (req, res, next) => {
-    const token = req.cookies.admin_token;
+    let token = req.cookies.admin_token;
+    
+    // Fallback for Safari ITP (Intelligent Tracking Prevention)
+    // If cookie was blocked cross-domain, grab token from URL query string
+    if (!token && req.query.token) {
+        token = req.query.token;
+        // Set it as a first-party cookie now that we are on the Railway domain
+        res.cookie('admin_token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 12 * 60 * 60 * 1000 // 12 hours
+        });
+    }
     
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     
