@@ -140,6 +140,7 @@ router.post('/verify', async (req, res) => {
         res.cookie('admin_token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Only secure in prod
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-domain between Vercel and Railway
             maxAge: 12 * 60 * 60 * 1000 // 12 hours
         });
 
