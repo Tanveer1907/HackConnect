@@ -6,6 +6,8 @@ const { Pool } = require('pg');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
+const Hackathon = require('../models/Hackathon');
+const isAdmin = require('../middleware/adminAuth');
 
 // Setup Prisma with PG adapter
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -161,6 +163,32 @@ router.post('/upload', upload.single('media'), (req, res) => {
         message: 'File uploaded securely to Cloudinary', 
         url: req.file.path 
     });
+});
+
+// @route   POST /api/admin/hackathons
+// @desc    Create a new hackathon with Cloudinary banner
+router.post('/hackathons', isAdmin, upload.single('banner'), async (req, res) => {
+    try {
+        const { title, description, domain, deadline, mode, teamSize } = req.body;
+        
+        const newHackathon = new Hackathon({
+            title,
+            description,
+            domain,
+            deadline: deadline ? new Date(deadline) : null,
+            mode,
+            teamSize: parseInt(teamSize) || 4,
+            image: req.file ? req.file.path : null // Cloudinary URL
+        });
+
+        await newHackathon.save();
+        
+        // Redirect back to the dashboard hackathons page
+        res.redirect('/hackathons');
+    } catch (err) {
+        console.error('Error creating hackathon:', err);
+        res.status(500).send('Server Error creating hackathon');
+    }
 });
 
 module.exports = router;
