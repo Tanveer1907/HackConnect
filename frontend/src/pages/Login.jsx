@@ -4,8 +4,10 @@ import { loginUser } from '../services/api';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+    const { login } = useAuth();
     const [loginType, setLoginType] = useState('user'); // 'user' or 'admin'
     
     // User State
@@ -27,14 +29,14 @@ export default function Login() {
         const err = searchParams.get('error');
 
         if (token) {
-            localStorage.setItem('token', token);
+            login(token);
             toast.success('Successfully logged in with OAuth!');
             navigate('/dashboard', { replace: true });
         }
         if (err) {
             toast.error('OAuth Authentication failed. Please try again.');
         }
-    }, [searchParams, navigate]);
+    }, [searchParams, navigate, login]);
 
     // Handle User Input
     const handleUserChange = (e) => {
@@ -71,8 +73,8 @@ export default function Login() {
         setLoading(true);
         try {
             const response = await loginUser(formData);
-            const { token } = response.data;
-            localStorage.setItem('token', token);
+            const { token, user } = response.data;
+            login(token, user);
             toast.success('Successfully logged in!');
             navigate('/dashboard');
         } catch (err) {

@@ -12,6 +12,16 @@ router.post('/register', authController.registerUser);
 // @access  Public
 router.post('/login', authController.loginUser);
 
+// @route   POST api/auth/forgot-password
+// @desc    Send OTP to email for password reset
+// @access  Public
+router.post('/forgot-password', authController.forgotPassword);
+
+// @route   POST api/auth/reset-password
+// @desc    Verify OTP and reset password
+// @access  Public
+router.post('/reset-password', authController.resetPassword);
+
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 

@@ -14,6 +14,8 @@ api.interceptors.request.use((config) => {
 
 export const registerUser = (userData) => api.post('/auth/register', userData);
 export const loginUser = (userData) => api.post('/auth/login', userData);
+export const forgotPassword = (emailData) => api.post('/auth/forgot-password', emailData);
+export const resetPassword = (resetData) => api.post('/auth/reset-password', resetData);
 export const getHackathons = (query = '') => api.get(`/hackathons${query}`);
 export const getHackathonDetails = (id) => api.get(`/hackathons/${id}`);
 export const getUserProfile = () => api.get('/users/profile');

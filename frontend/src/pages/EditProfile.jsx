@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { getUserProfile, updateUserProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function EditProfile() {
     const navigate = useNavigate();
+    const { refreshProfile } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -85,6 +87,7 @@ export default function EditProfile() {
                 ...formData,
                 skills: formData.skills.filter(s => s.name.trim() !== '')
             });
+            refreshProfile();
             setSuccess('Profile updated successfully!');
             setTimeout(() => navigate('/profile'), 1500);
         } catch (err) {

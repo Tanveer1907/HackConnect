@@ -44,7 +44,7 @@ export default function Teams() {
                     name: user.name,
                     profileImage: user.profileImage || "",
                     university: user.university || "University Not Specified",
-                    major: user.major || "Role Not Specified",
+                    major: user.role || "Role Not Specified",
                     matchPercentage: user.matchScore !== undefined ? user.matchScore : Math.floor(Math.random() * (99 - 70 + 1)) + 70,
                     skills: user.skills ? user.skills.map(skill => ({ name: skill.name || skill })) : [],
                     roleRequirement: user.bio || "Looking for a team",

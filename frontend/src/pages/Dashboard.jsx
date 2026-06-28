@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import HackathonCard from '../components/HackathonCard';
 import { getHackathons, getMyTeams, acceptTeamRequest } from '../services/api';
@@ -61,6 +62,21 @@ export default function Dashboard() {
                         </h1>
                         <p className="text-slate-600 font-medium dark:text-slate-400">You have upcoming events and pending team invites to manage.</p>
                     </div>
+
+                    {(!user?.university || !user?.skills || user.skills.length === 0) && (
+                        <div className="mb-8 p-5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 dark:from-amber-500/5 dark:to-orange-500/5 dark:border-amber-500/10 shadow-sm animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">✨</span>
+                                <div>
+                                    <h4 className="font-bold text-amber-800 dark:text-amber-400 text-sm">Complete your profile to find teammates!</h4>
+                                    <p className="text-xs text-amber-700/80 dark:text-amber-500/80">Add your university and skills so others can recommend and invite you to teams.</p>
+                                </div>
+                            </div>
+                            <Link to="/profile" className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap">
+                                Complete Profile
+                            </Link>
+                        </div>
+                    )}
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-12">
                         {/* Learning Card */}

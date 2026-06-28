@@ -28,6 +28,7 @@ export default function Sidebar() {
         { name: 'Dashboard', path: '/dashboard', icon: '⊞' },
         { name: 'Hackathons', path: '/hackathons', icon: '🏆' },
         { name: 'Teams', path: '/teams', icon: '👥' },
+        { name: 'Internships', path: '/internships', icon: '💼' },
         { name: 'Profile', path: '/profile', icon: '👤' },
     ];
 
