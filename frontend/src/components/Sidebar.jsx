@@ -1,24 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { getUserProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
     const location = useLocation();
-    const [user, setUser] = useState(null);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            if (localStorage.getItem('token')) {
-                try {
-                    const res = await getUserProfile();
-                    setUser(res.data);
-                } catch (err) {
-                    // silently ignore if token is invalid or user not found
-                }
-            }
-        };
-        fetchUser();
-    }, []);
+    const { user } = useAuth();
 
     const renderAvatar = () => {
         if (!user) {

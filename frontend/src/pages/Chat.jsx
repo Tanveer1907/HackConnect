@@ -1,28 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { io } from 'socket.io-client';
-import { getChatHistory, getMyChats, getUserProfile } from '../services/api';
+import { getChatHistory, getMyChats } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 
 export default function Chat() {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [chats, setChats] = useState([]);
     const [currentRoom, setCurrentRoom] = useState('');
-    const socketRef = useRef(null);
     const messagesEndRef = useRef(null);
 
-    const [currentUser, setCurrentUser] = useState(null);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const res = await getUserProfile();
-                setCurrentUser(res.data);
-            } catch (err) {
-                console.error('Failed to load user profile', err);
-            }
-        };
-        fetchUser();
-    }, []);
+    const { user: currentUser } = useAuth();
+    const socket = useSocket();
 
     const currentRoomRef = useRef(currentRoom);
 
@@ -39,38 +28,32 @@ export default function Chat() {
             }
             // Join all active rooms so we receive messages for all of them
             res.data.forEach(chat => {
-                if (socketRef.current) {
-                    socketRef.current.emit('join_room', { roomId: chat.roomId });
+                if (socket) {
+                    socket.emit('join_room', { roomId: chat.roomId });
                 }
             });
         } catch (err) {
             console.error('Failed to fetch sidebar chats', err);
         }
-    }, []);
+    }, [socket]);
 
     // Periodically re-fetch chats to pick up new conversations and join their rooms
     useEffect(() => {
         const interval = setInterval(() => {
-            if (socketRef.current?.connected) {
+            if (socket?.connected) {
                 fetchChats();
             }
         }, 5000); // Check for new conversations every 5 seconds
         return () => clearInterval(interval);
-    }, [fetchChats]);
+    }, [fetchChats, socket]);
 
     useEffect(() => {
-        if (!currentUser) return; // Wait until user is loaded
+        if (!socket || !currentUser) return; // Wait until loaded
 
-        socketRef.current = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
+        // Fetch chats immediately if connected
+        fetchChats();
 
-        socketRef.current.on('connect', () => {
-            console.log('Connected to socket server');
-            // Join personal room for direct message delivery
-            socketRef.current.emit('authenticate', { userId: currentUser._id });
-            fetchChats();
-        });
-
-        socketRef.current.on('receive_message', (newMessage) => {
+        const handleReceiveMessage = (newMessage) => {
             // Always update messages if the message belongs to the currently open room
             if (newMessage.roomId === currentRoomRef.current) {
                 setMessages((prev) => {
@@ -99,12 +82,21 @@ export default function Chat() {
                 // Sort by newest
                 return newChats.sort((a, b) => new Date(b.latestMessage?.createdAt || 0) - new Date(a.latestMessage?.createdAt || 0));
             });
-        });
+        };
+
+        const handleConnect = () => {
+            console.log('Connected to socket server (from Chat)');
+            fetchChats();
+        };
+
+        socket.on('receive_message', handleReceiveMessage);
+        socket.on('connect', handleConnect);
 
         return () => {
-            if (socketRef.current) socketRef.current.disconnect();
+            socket.off('receive_message', handleReceiveMessage);
+            socket.off('connect', handleConnect);
         };
-    }, [currentUser, fetchChats]);
+    }, [socket, currentUser, fetchChats]);
 
     useEffect(() => {
         if (!currentRoom) return;
@@ -140,7 +132,9 @@ export default function Chat() {
             text: message
         };
 
-        socketRef.current.emit('send_message', messageData);
+        if (socket) {
+            socket.emit('send_message', messageData);
+        }
         setMessage('');
     };
 

@@ -1,12 +1,11 @@
-require('dotenv').config();
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+require('dotenv').config();
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const Admin = require('./src/models/Admin');
 
 async function main() {
   const email = process.env.EMAIL_USER;
@@ -17,19 +16,21 @@ async function main() {
     return;
   }
 
+  // Connect to MongoDB
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log('Connected to MongoDB for seeding...');
+
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(rawPassword, salt);
 
-  const admin = await prisma.admin.upsert({
-    where: { email },
-    update: {},
-    create: {
-      email,
-      password: hashedPassword,
-    },
-  });
+  // Upsert admin user in MongoDB
+  const admin = await Admin.findOneAndUpdate(
+    { email },
+    { email, password: hashedPassword },
+    { upsert: true, new: true }
+  );
 
-  console.log(`✅ Admin user seeded successfully!`);
+  console.log(`✅ Admin user seeded successfully in MongoDB!`);
   console.log(`Admin Email: ${admin.email}`);
   console.log(`Master Password: ${rawPassword}`);
 }
@@ -40,6 +41,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect();
-    await pool.end();
+    await mongoose.disconnect();
   });

@@ -10,7 +10,11 @@ const authMiddleware = (req, res, next) => {
     try {
         const splitToken = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
         const decoded = jwt.verify(splitToken, process.env.JWT_SECRET);
-        req.user = decoded; // we attach user ID (or the whole decoded token) to request
+        req.user = decoded;
+        // Normalize req.user.user.id so both local and OAuth payloads work seamlessly
+        if (req.user && !req.user.user) {
+            req.user.user = { id: decoded.id || decoded._id };
+        }
         next();
     } catch (error) {
         res.status(401).json({ message: 'Token is not valid' });

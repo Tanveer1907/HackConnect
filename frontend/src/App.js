@@ -23,7 +23,7 @@ const PublicRoute = ({ children }) => {
 // Guard to protect internal pages from unauthenticated users
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('token');
-  return isAuthenticated ? children : <Navigate to="/signup" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 const AppContent = () => {

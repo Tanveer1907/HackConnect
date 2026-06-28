@@ -17,8 +17,12 @@ const isAdmin = (req, res, next) => {
     }
     
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const isApiRequest = req.originalUrl.startsWith('/api/') || req.xhr;
     
     if (!token) {
+        if (isApiRequest) {
+            return res.status(401).json({ message: 'Unauthorized. No token provided.' });
+        }
         // If they are accessing an EJS view directly and are not logged in,
         // redirect them to the frontend login page.
         return res.redirect(`${frontendUrl}/login`);
@@ -28,6 +32,9 @@ const isAdmin = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         if (decoded.role !== 'admin') {
+            if (isApiRequest) {
+                return res.status(403).json({ message: 'Forbidden. Admin role required.' });
+            }
             return res.redirect(`${frontendUrl}/login`);
         }
 
@@ -35,6 +42,9 @@ const isAdmin = (req, res, next) => {
         next();
     } catch (err) {
         console.error('Admin Auth Error:', err);
+        if (isApiRequest) {
+            return res.status(401).json({ message: 'Unauthorized. Token is not valid.' });
+        }
         return res.redirect(`${frontendUrl}/login`);
     }
 };

@@ -25,10 +25,14 @@ const generateToken = (id) => {
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 router.get('/google/callback',
-    passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login?error=true' }),
+    (req, res, next) => {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        passport.authenticate('google', { failureRedirect: `${frontendUrl}/login?error=true` })(req, res, next);
+    },
     (req, res) => {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         const token = generateToken(req.user._id);
-        res.redirect(`http://localhost:3000/login?token=${token}`);
+        res.redirect(`${frontendUrl}/login?token=${token}`);
     }
 );
 
@@ -36,10 +40,14 @@ router.get('/google/callback',
 router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 router.get('/github/callback',
-    passport.authenticate('github', { failureRedirect: 'http://localhost:3000/login?error=true' }),
+    (req, res, next) => {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        passport.authenticate('github', { failureRedirect: `${frontendUrl}/login?error=true` })(req, res, next);
+    },
     (req, res) => {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
         const token = generateToken(req.user._id);
-        res.redirect(`http://localhost:3000/login?token=${token}`);
+        res.redirect(`${frontendUrl}/login?token=${token}`);
     }
 );
 

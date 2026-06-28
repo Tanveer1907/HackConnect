@@ -8,10 +8,19 @@ const { getMyChats } = require('../controllers/chatController');
 router.get('/my-chats', auth, getMyChats);
 
 // Get message history for a room
-router.get('/:roomId', async (req, res) => {
+router.get('/:roomId', auth, async (req, res) => {
     try {
-        const messages = await Message.find({ roomId: req.params.roomId })
-            .populate('sender', 'username email profile.firstName profile.lastName')
+        const { roomId } = req.params;
+        const userId = req.user.user.id;
+
+        // Verify user is part of the room
+        const roomUsers = roomId.split('-');
+        if (!roomUsers.includes(userId)) {
+            return res.status(403).json({ message: 'Access denied to this chat room' });
+        }
+
+        const messages = await Message.find({ roomId })
+            .populate('sender', 'name email profileImage')
             .sort({ createdAt: 1 });
         res.json(messages);
     } catch (error) {

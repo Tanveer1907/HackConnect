@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { getUserProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
     const location = useLocation();
     const { theme, toggleTheme } = useTheme();
-    const [user, setUser] = useState(null);
-    const token = localStorage.getItem('token');
+    const { user, token, logout } = useAuth();
 
     const [hasNotifications, setHasNotifications] = useState(false);
 
     useEffect(() => {
-        const fetchUserAndNotifications = async () => {
-            if (token) {
+        const fetchNotifications = async () => {
+            if (token && user) {
                 try {
-                    const res = await getUserProfile();
-                    const userData = res.data;
-                    setUser(userData);
-                    
                     // If we are currently on the chat page, mark as seen immediately
                     if (location.pathname === '/chat') {
                         localStorage.setItem('lastChatVisit', Date.now().toString());
@@ -40,7 +35,7 @@ export default function Navbar() {
                             // It's unread if:
                             // 1. It's not from me
                             // 2. It was created after my last visit
-                            const isFromOthers = lastMsg.sender !== userData._id && lastMsg.sender?._id !== userData._id;
+                            const isFromOthers = lastMsg.sender !== user._id && lastMsg.sender?._id !== user._id;
                             const isNew = new Date(lastMsg.createdAt).getTime() > lastVisit;
                             
                             return isFromOthers && isNew;
@@ -48,23 +43,22 @@ export default function Navbar() {
                         setHasNotifications(hasUnread);
                     }
                 } catch (err) {
-                    // silently ignore
+                    console.error('Failed to fetch navbar notifications', err);
                 }
             }
         };
-        fetchUserAndNotifications();
+        fetchNotifications();
         
         // Also clear notification if user navigates TO chat
         if (location.pathname === '/chat') {
             setHasNotifications(false);
             localStorage.setItem('lastChatVisit', Date.now().toString());
         }
-    }, [token, location.pathname]);
+    }, [token, user, location.pathname]);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        setUser(null);
-        window.location.href = '/';
+        logout();
+        window.location.href = '/login';
     };
 
     const renderAvatar = () => {

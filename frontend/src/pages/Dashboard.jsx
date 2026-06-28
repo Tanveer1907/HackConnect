@@ -1,35 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import HackathonCard from '../components/HackathonCard';
-import { getHackathons } from '../services/api';
+import { getHackathons, getMyTeams, acceptTeamRequest } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
     const [hackathons, setHackathons] = useState([]);
-    const [user, setUser] = useState(null);
     const [myTeams, setMyTeams] = useState([]);
+    const { user } = useAuth();
 
     const handleAccept = async (teamId, userId) => {
         try {
-            const { acceptTeamRequest } = require('../services/api');
             await acceptTeamRequest(teamId, { userIdToAccept: userId });
-            alert("Request accepted successfully!");
+            toast.success("Request accepted successfully!");
+            // Refresh teams
+            const teamsRes = await getMyTeams().catch(() => ({ data: [] }));
+            setMyTeams(teamsRes.data);
         } catch (error) {
-            alert("Error accepting request: " + (error.response?.data?.message || error.message));
+            toast.error("Error accepting request: " + (error.response?.data?.message || error.message));
         }
     };
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const { getUserProfile, getHackathons, getMyTeams } = require('../services/api');
-
-                const [userRes, hackathonsRes, teamsRes] = await Promise.all([
-                    getUserProfile().catch(() => ({ data: { name: 'Guest', _id: null } })),
+                const [hackathonsRes, teamsRes] = await Promise.all([
                     getHackathons().catch(() => ({ data: [] })),
                     getMyTeams().catch(() => ({ data: [] }))
                 ]);
 
-                setUser(userRes.data);
                 setHackathons(hackathonsRes.data);
                 setMyTeams(teamsRes.data);
             } catch (err) {
@@ -43,7 +43,10 @@ export default function Dashboard() {
     }, []);
 
     const leaderTeamsWithRequests = myTeams.filter(
-        team => team.leaderId?._id === user?._id && team.pendingRequests?.length > 0
+        team => {
+            const leaderId = team.leaderId?._id || team.leaderId;
+            return leaderId === user?._id && team.pendingRequests?.length > 0;
+        }
     );
 
     return (

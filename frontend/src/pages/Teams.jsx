@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers, getUserProfile, getRecommendedTeammates } from '../services/api';
-import { io } from 'socket.io-client';
+import { getAllUsers, getRecommendedTeammates } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
+import toast from 'react-hot-toast';
 
 export default function Teams() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [currentUser, setCurrentUser] = useState(null);
+    const { user: currentUser } = useAuth();
+    const socket = useSocket();
     const [inviteMessage, setInviteMessage] = useState('');
 
     // Filter states
@@ -19,14 +22,11 @@ export default function Teams() {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                let currentUserId = null;
+                let currentUserId = currentUser?._id;
                 let response;
 
-                if (localStorage.getItem('token')) {
+                if (currentUser) {
                     try {
-                        const profileObj = await getUserProfile();
-                        currentUserId = profileObj.data._id;
-                        setCurrentUser(profileObj.data);
                         response = await getRecommendedTeammates();
                     } catch (e) {
                         response = await getAllUsers();
@@ -62,7 +62,7 @@ export default function Teams() {
         };
 
         fetchUsers();
-    }, []);
+    }, [currentUser]);
 
     return (
         <div className="flex flex-col flex-1 font-sans text-slate-800 overflow-x-hidden transition-colors duration-300 dark:text-slate-200">
@@ -295,24 +295,20 @@ export default function Teams() {
                             <button
                                 className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 shadow-sm transition-all text-center dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5"
                                 onClick={() => {
-                                    if (currentUser && selectedUser) {
-                                        const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:5001');
-                                        socket.on('connect', () => {
-                                            const sortedIds = [currentUser._id.toString(), selectedUser.id.toString()].sort();
-                                            const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
-                                            socket.emit('send_message', {
-                                                roomId,
-                                                senderId: currentUser._id,
-                                                text: inviteMessage,
-                                                createdAt: new Date().toISOString()
-                                            });
-                                            setTimeout(() => {
-                                                socket.disconnect();
-                                            }, 500); // give it time to emit
+                                    if (currentUser && selectedUser && socket) {
+                                        const sortedIds = [currentUser._id.toString(), selectedUser.id.toString()].sort();
+                                        const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
+                                        socket.emit('send_message', {
+                                            roomId,
+                                            senderId: currentUser._id,
+                                            text: inviteMessage,
+                                            createdAt: new Date().toISOString()
                                         });
+                                        toast.success("Invitation sent successfully!");
+                                    } else if (!socket) {
+                                        toast.error("Failed to connect to chat server. Please try again.");
                                     }
                                     setSelectedUser(null);
-                                    alert("Invitation sent successfully!");
                                 }}
                             >
                                 Send Invitation

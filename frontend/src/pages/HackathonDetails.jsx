@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { getHackathonDetails, createTeam, sendTeamRequest } from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function HackathonDetails() {
     const { id } = useParams();
@@ -10,53 +11,58 @@ export default function HackathonDetails() {
     const [joinTeamId, setJoinTeamId] = useState('');
     const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [showJoinTeam, setShowJoinTeam] = useState(false);
+    const [error, setError] = useState(null);
 
     const handleCreateTeam = async () => {
-        if (!teamName) return alert('Please enter a team name');
+        if (!teamName) return toast.error('Please enter a team name');
         try {
             await createTeam({ name: teamName, hackathonId: id });
-            alert("Team created successfully!");
+            toast.success("Team created successfully!");
             setTeamName('');
             setShowCreateTeam(false);
         } catch (err) {
-            alert("Error creating team: " + (err.response?.data?.message || err.message));
+            toast.error("Error creating team: " + (err.response?.data?.message || err.message));
         }
     };
 
     const handleJoinTeam = async () => {
-        if (!joinTeamId) return alert('Please enter a Team ID');
+        if (!joinTeamId) return toast.error('Please enter a Team ID');
         try {
             await sendTeamRequest(joinTeamId);
-            alert("Join request sent successfully!");
+            toast.success("Join request sent successfully!");
             setJoinTeamId('');
             setShowJoinTeam(false);
         } catch (err) {
-            alert("Error sending request: " + (err.response?.data?.message || err.message));
+            toast.error("Error sending request: " + (err.response?.data?.message || err.message));
         }
     };
 
     useEffect(() => {
         const fetchDetails = async () => {
             try {
+                setError(null);
                 const res = await getHackathonDetails(id);
                 setHackathon(res.data);
             } catch (err) {
                 console.error("Failed to fetch hackathon details", err);
-                // Fallback for UI demonstration
-                setHackathon({
-                    title: 'Global AI Challenge 2024',
-                    description: 'Build the future of generative AI. Solve real-world problems using the latest AI models and agents. Join thousands of developers worldwide to create innovative solutions that can revolutionize fields ranging from healthcare to sustainable energy. Mentors from top tech companies will be available 24/7 to help you crack the toughest challenges.',
-                    deadline: 'October 15, 2024',
-                    domain: 'AI & Machine Learning',
-                    mode: 'ONLINE',
-                    teamSize: '1-4 Members',
-                    prizePool: '$50,000',
-                    image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=1200&q=80'
-                });
+                setError("Failed to load hackathon details. Please try again later.");
+                toast.error("Failed to load hackathon details.");
             }
         };
         fetchDetails();
     }, [id]);
+
+    if (error) {
+        return (
+            <div className="flex flex-col flex-1 bg-[#fafafa] dark:bg-[#0f172a] justify-center items-center p-10 text-center text-red-500 font-bold">
+                <span className="text-4xl mb-4">⚠️</span>
+                {error}
+                <Link to="/dashboard" className="mt-6 text-sm text-blue-600 hover:underline dark:text-blue-400">
+                    Back to Dashboard
+                </Link>
+            </div>
+        );
+    }
 
     if (!hackathon) return <div className="p-10 text-center font-medium text-gray-500">Loading hackathon info...</div>;
 

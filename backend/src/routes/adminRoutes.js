@@ -2,17 +2,10 @@ const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
 const Hackathon = require('../models/Hackathon');
+const Admin = require('../models/Admin');
 const isAdmin = require('../middleware/adminAuth');
-
-// Setup Prisma with PG adapter
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
 
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -52,8 +45,8 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // 1. Check if admin exists in Postgres
-        const admin = await prisma.admin.findUnique({ where: { email } });
+        // 1. Check if admin exists in MongoDB
+        const admin = await Admin.findOne({ email });
         if (!admin) {
             return res.status(401).json({ message: 'Invalid Admin Credentials' });
         }
@@ -68,11 +61,8 @@ router.post('/login', async (req, res) => {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-        // 4. Save OTP to Postgres
-        await prisma.admin.update({
-            where: { email },
-            data: { otp, otpExpiry }
-        });
+        // 4. Save OTP to MongoDB
+        await Admin.findOneAndUpdate({ email }, { otp, otpExpiry });
 
         // 5. Send OTP via Email (with fallback if cloud provider blocks outbound SMTP)
         const mailOptions = {
@@ -90,17 +80,21 @@ router.post('/login', async (req, res) => {
             `
         };
 
+        const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+
         try {
             await transporter.sendMail(mailOptions);
             res.status(200).json({ 
                 message: 'OTP sent successfully to registered admin email',
-                devOtp: otp 
+                ...(isDev && { devOtp: otp })
             });
         } catch (emailErr) {
-            console.warn('Email sending blocked by cloud firewall (expected in trial tier):', emailErr.message);
+            console.warn('Email sending blocked by cloud firewall:', emailErr.message);
             res.status(200).json({ 
-                message: 'OTP generated successfully! (Note: Live email sending is blocked by free hosting firewall. Use OTP shown below)',
-                devOtp: otp 
+                message: isDev 
+                    ? 'OTP generated successfully! (Note: Live email sending is blocked by free hosting firewall. Use OTP shown below)'
+                    : 'OTP generation completed. Please contact support if SMTP fails.',
+                ...(isDev && { devOtp: otp })
             });
         }
     } catch (err) {
@@ -115,7 +109,7 @@ router.post('/verify', async (req, res) => {
     try {
         const { email, otp } = req.body;
 
-        const admin = await prisma.admin.findUnique({ where: { email } });
+        const admin = await Admin.findOne({ email });
         if (!admin) {
             return res.status(401).json({ message: 'Admin not found' });
         }
@@ -126,14 +120,11 @@ router.post('/verify', async (req, res) => {
         }
 
         // Clear OTP from DB
-        await prisma.admin.update({
-            where: { email },
-            data: { otp: null, otpExpiry: null }
-        });
+        await Admin.findOneAndUpdate({ email }, { otp: null, otpExpiry: null });
 
         // Generate Token
         const token = jwt.sign(
-            { id: admin.id, role: 'admin' }, 
+            { id: admin.id || admin._id, role: 'admin' }, 
             process.env.JWT_SECRET, 
             { expiresIn: '12h' }
         );
@@ -155,7 +146,7 @@ router.post('/verify', async (req, res) => {
 
 // @route   POST /api/admin/upload
 // @desc    Upload file to Cloudinary
-router.post('/upload', upload.single('media'), (req, res) => {
+router.post('/upload', isAdmin, upload.single('media'), (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }

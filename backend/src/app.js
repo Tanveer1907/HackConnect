@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -18,6 +20,21 @@ const User = require('./models/User');
 const Hackathon = require('./models/Hackathon');
 
 const app = express();
+
+// Secure HTTP headers (allow CDNs for EJS templates)
+app.use(helmet({
+    contentSecurityPolicy: false,
+}));
+
+// Rate limiter for API routes to prevent abuse
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 150, // Limit each IP to 150 requests per window
+    message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use('/api', apiLimiter);
 
 // EJS Template Engine setup (SSR)
 app.set('view engine', 'ejs');

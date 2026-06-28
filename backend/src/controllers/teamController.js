@@ -143,6 +143,13 @@ exports.acceptTeamRequest = async (req, res) => {
              return res.status(400).json({ message: 'This user has not requested to join the team' });
         }
 
+        // Enforce hackathon team size limits
+        const hackathon = await Hackathon.findById(team.hackathonId);
+        const maxTeamSize = hackathon ? (hackathon.teamSize || 4) : 4;
+        if (team.members.length >= maxTeamSize) {
+            return res.status(400).json({ message: `Team is already full (limit is ${maxTeamSize} members)` });
+        }
+
         // Move from pending to members
         team.pendingRequests = team.pendingRequests.filter(id => id.toString() !== userIdToAccept);
         team.members.push(userIdToAccept);
