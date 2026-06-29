@@ -14,6 +14,8 @@ import Dashboard from './pages/Dashboard';
 import HackathonDetails from './pages/HackathonDetails';
 import Chat from './pages/Chat';
 import EditProfile from './pages/EditProfile';
+import MyApplications from './pages/MyApplications';
+import AdminModeration from './pages/AdminModeration';
 import './App.css';
 
 // Simple guard to redirect logged-in users away from public pages
@@ -52,6 +54,8 @@ const AppContent = () => {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/hackathon/:id" element={<ProtectedRoute><HackathonDetails /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+        <Route path="/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+        <Route path="/admin/moderation" element={<ProtectedRoute><AdminModeration /></ProtectedRoute>} />
       </Routes>
       <Toaster position="top-right" />
     </div>

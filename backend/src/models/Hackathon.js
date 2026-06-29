@@ -25,6 +25,31 @@ const hackathonSchema = new mongoose.Schema(
         image: {
             type: String,
         },
+        source: {
+            type: String,
+            default: 'manual',
+        },
+        sourceId: {
+            type: String,
+        },
+        sourceUrl: {
+            type: String,
+        },
+        prizePool: {
+            type: String,
+        },
+        participantCount: {
+            type: Number,
+            default: 0,
+        },
+        startDate: {
+            type: Date,
+        },
+        status: {
+            type: String,
+            enum: ['pending', 'live', 'rejected'],
+            default: 'live',
+        },
     },
     { timestamps: true }
 );

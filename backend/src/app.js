@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const hackathonRoutes = require('./routes/hackathonRoutes');
+const internshipRoutes = require('./routes/internshipRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const adminRoutes = require('./routes/adminRoutes');
@@ -29,7 +30,7 @@ app.use(helmet({
 // Rate limiter for API routes to prevent abuse
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 150, // Limit each IP to 150 requests per window
+    max: 1000, // Limit each IP to 1000 requests per window (increased from 150)
     message: { message: 'Too many requests from this IP, please try again after 15 minutes' },
     standardHeaders: true,
     legacyHeaders: false,
@@ -119,6 +120,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/hackathons', hackathonRoutes);
 app.use('/api/team', teamRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/internships', internshipRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Error-handling middleware (must be LAST)

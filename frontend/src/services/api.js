@@ -22,6 +22,17 @@ export const getUserProfile = () => api.get('/users/profile');
 export const updateUserProfile = (profileData) => api.put('/users/profile', profileData);
 export const getAllUsers = () => api.get('/users');
 
+// --- Internship Endpoints ---
+export const getInternships = (query = '') => api.get(`/internships${query}`);
+export const getInternshipDetails = (id) => api.get(`/internships/${id}`);
+export const applyToInternship = (id, applicationData) => api.post(`/internships/${id}/apply`, applicationData);
+export const getMyInternshipApplications = () => api.get('/internships/my-applications');
+export const withdrawInternshipApplication = (id) => api.put(`/internships/application/${id}/withdraw`);
+
+// --- Admin Moderation Endpoints ---
+export const getPendingModeration = () => api.get('/admin/moderation/pending');
+export const moderateItem = (type, id, action, data = {}) => api.put(`/admin/moderation/${type}/${id}/${action}`, data);
+
 // --- Team Endpoints ---
 export const createTeam = (teamData) => api.post('/team/create', teamData);
 export const getMyTeams = () => api.get('/team/my-teams');

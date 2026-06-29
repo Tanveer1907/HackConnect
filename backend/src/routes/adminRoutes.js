@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Hackathon = require('../models/Hackathon');
+const Internship = require('../models/Internship');
 const Admin = require('../models/Admin');
 const isAdmin = require('../middleware/adminAuth');
 
@@ -191,6 +192,84 @@ router.post('/hackathons/:id/delete', isAdmin, async (req, res) => {
     } catch (err) {
         console.error('Error deleting hackathon:', err);
         res.status(500).send('Server Error deleting hackathon');
+    }
+});
+
+// @route   GET /api/admin/moderation/pending
+// @desc    Get all pending hackathons and internships
+// @access  Admin
+router.get('/moderation/pending', isAdmin, async (req, res) => {
+    try {
+        const hackathons = await Hackathon.find({ status: 'pending' }).sort({ createdAt: -1 });
+        const internships = await Internship.find({ status: 'pending' }).sort({ createdAt: -1 });
+        res.json({ hackathons, internships });
+    } catch (err) {
+        console.error('Error fetching pending items:', err);
+        res.status(500).json({ message: 'Server error loading moderation queue' });
+    }
+});
+
+// @route   PUT /api/admin/moderation/:type/:id/approve
+// @desc    Approve a pending item (sets status to live)
+// @access  Admin
+router.put('/moderation/:type/:id/approve', isAdmin, async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        if (type === 'hackathon') {
+            await Hackathon.findByIdAndUpdate(id, { status: 'live' });
+        } else if (type === 'internship') {
+            await Internship.findByIdAndUpdate(id, { status: 'live' });
+        } else {
+            return res.status(400).json({ message: 'Invalid moderation type' });
+        }
+        res.json({ message: 'Item approved successfully and is now live!' });
+    } catch (err) {
+        console.error('Error approving item:', err);
+        res.status(500).json({ message: 'Server error approving item' });
+    }
+});
+
+// @route   PUT /api/admin/moderation/:type/:id/reject
+// @desc    Reject/Archive a pending item (sets status to rejected)
+// @access  Admin
+router.put('/moderation/:type/:id/reject', isAdmin, async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        if (type === 'hackathon') {
+            await Hackathon.findByIdAndUpdate(id, { status: 'rejected' });
+        } else if (type === 'internship') {
+            await Internship.findByIdAndUpdate(id, { status: 'rejected' });
+        } else {
+            return res.status(400).json({ message: 'Invalid moderation type' });
+        }
+        res.json({ message: 'Item rejected and hidden from student feeds.' });
+    } catch (err) {
+        console.error('Error rejecting item:', err);
+        res.status(500).json({ message: 'Server error rejecting item' });
+    }
+});
+
+// @route   PUT /api/admin/moderation/:type/:id/edit
+// @desc    Edit a pending item and optionally approve it
+// @access  Admin
+router.put('/moderation/:type/:id/edit', isAdmin, async (req, res) => {
+    try {
+        const { type, id } = req.params;
+        const updateData = req.body;
+        
+        let updatedItem;
+        if (type === 'hackathon') {
+            updatedItem = await Hackathon.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+        } else if (type === 'internship') {
+            updatedItem = await Internship.findByIdAndUpdate(id, { $set: updateData }, { new: true });
+        } else {
+            return res.status(400).json({ message: 'Invalid moderation type' });
+        }
+        
+        res.json({ message: 'Item details updated successfully!', item: updatedItem });
+    } catch (err) {
+        console.error('Error updating moderated item:', err);
+        res.status(500).json({ message: 'Server error updating item' });
     }
 });
 

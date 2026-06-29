@@ -1,106 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { toast } from 'react-hot-toast';
-
-const mockInternships = [
-    {
-        id: 1,
-        company: 'Vercel',
-        logo: '▲',
-        role: 'Frontend Engineering Intern',
-        location: 'San Francisco, CA',
-        mode: 'REMOTE',
-        stipend: '$50 - $65 / hour',
-        duration: '12 Weeks (Summer)',
-        tags: ['React', 'Next.js', 'TypeScript', 'TailwindCSS'],
-        description: 'Work directly with the framework team building the future of Server Components, routing architecture, and caching optimization in Next.js.'
-    },
-    {
-        id: 2,
-        company: 'Stripe',
-        logo: '💳',
-        role: 'Backend Engineering Intern',
-        location: 'Seattle, WA',
-        mode: 'HYBRID',
-        stipend: '$55 - $70 / hour',
-        duration: '12 Weeks',
-        tags: ['Ruby', 'Go', 'REST APIs', 'SQL'],
-        description: 'Build reliable, high-performance financial systems. You will optimize credit card processing pipelines and ledger systems handling millions of daily transactions.'
-    },
-    {
-        id: 3,
-        company: 'Linear',
-        logo: '⧉',
-        role: 'UI/UX Product Design Intern',
-        location: 'New York, NY',
-        mode: 'REMOTE',
-        stipend: 'Competitive',
-        duration: '16 Weeks',
-        tags: ['Figma', 'Product Design', 'Prototyping', 'CSS'],
-        description: 'Collaborate with engineers and designers to refine Linear\'s desktop application. Focus on motion aesthetics, keyboard-driven navigation, and high information-density views.'
-    },
-    {
-        id: 4,
-        company: 'Google',
-        logo: 'G',
-        role: 'Machine Learning Research Intern',
-        location: 'Mountain View, CA',
-        mode: 'IN_OFFICE',
-        stipend: '$60 - $75 / hour',
-        duration: '14 Weeks',
-        tags: ['Python', 'PyTorch', 'TensorFlow', 'LLMs'],
-        description: 'Join the Google DeepMind team researching new reinforcement learning techniques and model optimization algorithms for consumer-facing LLM agents.'
-    },
-    {
-        id: 5,
-        company: 'Vite',
-        logo: '⚡',
-        role: 'Core Systems Developer Intern',
-        location: 'Paris, France',
-        mode: 'REMOTE',
-        stipend: 'Competitive',
-        duration: '12 Weeks',
-        tags: ['JavaScript', 'Rust', 'Build Tools', 'Rollup'],
-        description: 'Optimize build speed and dev server boot times. Work on native bundler features in Rust, improving tree-shaking and HMR mechanics in Vite core.'
-    },
-    {
-        id: 6,
-        company: 'Slack',
-        logo: '💬',
-        role: 'Full Stack Engineering Intern',
-        location: 'Denver, CO',
-        mode: 'HYBRID',
-        stipend: '$45 - $55 / hour',
-        duration: '12 Weeks',
-        tags: ['React', 'PHP/Hack', 'WebSockets', 'MySQL'],
-        description: 'Work on real-time messaging pipeline optimization. Focus on improving workspace sidebar rendering speed and client synchronization under bad network conditions.'
-    }
-];
+import { getInternships, applyToInternship } from '../services/api';
 
 export default function Internships() {
+    const [internships, setInternships] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [modeFilter, setModeFilter] = useState('');
     const [selectedInternship, setSelectedInternship] = useState(null);
     const [applyForm, setApplyForm] = useState({ portfolio: '', whyJoin: '', resumeName: '' });
+    const [resumeFile, setResumeFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleApplySubmit = (e) => {
+    useEffect(() => {
+        const loadInternships = async () => {
+            try {
+                const response = await getInternships();
+                setInternships(response.data);
+            } catch (err) {
+                console.error(err);
+                toast.error("Failed to load live internships.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadInternships();
+    }, []);
+
+    const handleApplySubmit = async (e) => {
         e.preventDefault();
+        if (!resumeFile) return toast.error("Please select a resume file (PDF) to upload.");
         if (!applyForm.whyJoin.trim()) return toast.error("Please explain why you want to join.");
         
         setIsSubmitting(true);
-        setTimeout(() => {
+        try {
+            const formData = new FormData();
+            formData.append('resume', resumeFile);
+            formData.append('portfolio', applyForm.portfolio);
+            formData.append('whyJoin', applyForm.whyJoin);
+
+            await applyToInternship(selectedInternship._id || selectedInternship.id, formData);
             toast.success(`Application to ${selectedInternship.company} submitted successfully!`);
-            setIsSubmitting(false);
             setSelectedInternship(null);
+            setResumeFile(null);
             setApplyForm({ portfolio: '', whyJoin: '', resumeName: '' });
-        }, 1200);
+        } catch (err) {
+            console.error(err);
+            const errMsg = err.response?.data?.message || "Failed to submit application.";
+            toast.error(errMsg);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const filteredInternships = mockInternships.filter(item => {
+    const filteredInternships = internships.filter(item => {
+        const skillsList = item.skills || item.tags || [];
         const matchesSearch = item.role.toLowerCase().includes(search.toLowerCase()) || 
                               item.company.toLowerCase().includes(search.toLowerCase()) ||
-                              item.tags.some(t => t.toLowerCase().includes(search.toLowerCase()));
+                              skillsList.some(t => t.toLowerCase().includes(search.toLowerCase()));
         
         const matchesMode = !modeFilter || item.mode === modeFilter;
         return matchesSearch && matchesMode;
@@ -155,23 +113,27 @@ export default function Internships() {
                         </div>
 
                         {/* LISTINGS GRID */}
-                        {filteredInternships.length === 0 ? (
+                        {loading ? (
+                            <div className="text-center py-20 text-slate-500 font-semibold bg-white rounded-3xl border border-gray-200 dark:bg-white/5 dark:border-white/10">
+                                Loading live internships...
+                            </div>
+                        ) : filteredInternships.length === 0 ? (
                             <div className="text-center py-20 text-slate-500 font-semibold bg-white rounded-3xl border border-gray-200 dark:bg-white/5 dark:border-white/10">
                                 No internships found matching your filters.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {filteredInternships.map((item) => (
-                                    <div key={item.id} className="bg-white rounded-3xl p-7 border border-gray-200 hover:-translate-y-1 hover:shadow-md hover:border-blue-300 transition-all duration-300 flex flex-col justify-between dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
+                                    <div key={item._id || item.id} className="bg-white rounded-3xl p-7 border border-gray-200 hover:-translate-y-1 hover:shadow-md hover:border-blue-300 transition-all duration-300 flex flex-col justify-between dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
                                         <div>
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center font-extrabold text-2xl text-slate-800 shadow-inner dark:bg-slate-800 dark:text-white">
-                                                        {item.logo}
+                                                        {item.logo || '💼'}
                                                     </div>
                                                     <div>
                                                         <h3 className="font-extrabold text-slate-900 text-lg leading-tight dark:text-white">{item.role}</h3>
-                                                        <p className="text-xs text-blue-600 font-bold dark:text-blue-400">{item.company} • {item.location}</p>
+                                                        <p className="text-xs text-blue-600 font-bold dark:text-blue-400">{item.company} • {item.location || 'Remote'}</p>
                                                     </div>
                                                 </div>
                                                 <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase border ${
@@ -186,7 +148,7 @@ export default function Internships() {
                                             <p className="text-slate-600 text-sm leading-relaxed mb-6 dark:text-slate-300">{item.description}</p>
 
                                             <div className="flex flex-wrap gap-2 mb-6">
-                                                {item.tags.map((tag, idx) => (
+                                                {(item.skills && item.skills.length > 0 ? item.skills : item.tags || []).map((tag, idx) => (
                                                     <span key={idx} className="bg-slate-50 border border-gray-150 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-lg dark:bg-slate-800/80 dark:border-white/5 dark:text-slate-300">
                                                         {tag}
                                                     </span>
@@ -196,7 +158,7 @@ export default function Internships() {
 
                                         <div className="flex justify-between items-center border-t border-gray-100 pt-5 mt-4 dark:border-white/5">
                                             <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                                Stipend: <strong className="text-slate-900 font-extrabold dark:text-white">{item.stipend}</strong> • {item.duration}
+                                                Stipend: <strong className="text-slate-900 font-extrabold dark:text-white">{item.stipend || 'Competitive'}</strong> • {item.duration || '3 Months'}
                                             </div>
                                             <button 
                                                 onClick={() => setSelectedInternship(item)}
@@ -240,7 +202,11 @@ export default function Internships() {
                                         type="file" 
                                         accept=".pdf"
                                         required={!applyForm.resumeName}
-                                        onChange={(e) => setApplyForm({ ...applyForm, resumeName: e.target.files[0]?.name || '' })}
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            setResumeFile(file);
+                                            setApplyForm({ ...applyForm, resumeName: file?.name || '' });
+                                        }}
                                         className="hidden" 
                                         id="resume-upload" 
                                     />

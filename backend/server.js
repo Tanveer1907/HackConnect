@@ -6,6 +6,7 @@ require("dotenv").config();
 
 const app = require("./src/app");
 const connectDB = require("./config/db");
+const { initCron } = require("./src/services/ingest");
 const http = require("http");
 const { Server } = require("socket.io");
 const Message = require("./src/models/Message");
@@ -120,4 +121,5 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  initCron();
 });
