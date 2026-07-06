@@ -311,16 +311,6 @@ export default function Login() {
                 <span className="w-1 h-1 rounded-full bg-slate-700 my-auto"></span>
                 <a href="#" className="hover:text-slate-300">Security Policy</a>
             </div>
-
-            <style jsx>{`
-                .animate-fadeIn {
-                    animation: fadeIn 0.3s ease-out forwards;
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(5px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
         </div>
     );
 }

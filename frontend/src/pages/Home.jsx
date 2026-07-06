@@ -38,7 +38,7 @@ export default function Home() {
                                     <div className="text-slate-500 text-xs dark:text-slate-400">Registration closing in 2 days</div>
                                 </div>
                             </div>
-                            <button className="btn-primary px-3 py-1.5 text-xs rounded-full">Join</button>
+                            <Link to="/hackathons" className="btn-primary px-3 py-1.5 text-xs rounded-full">Join</Link>
                         </div>
                     </div>
                 </div>
@@ -61,9 +61,6 @@ export default function Home() {
                             </div>
                         ))}
                     </div>
-                    <div className="mt-8">
-                        <span className="text-blue-600 font-semibold cursor-pointer hover:underline dark:text-blue-400">Learn more about the process →</span>
-                    </div>
                 </div>
 
                 {/* Platform Features */}
@@ -73,7 +70,6 @@ export default function Home() {
                             <h2 className="text-3xl font-extrabold mb-2.5 text-slate-900 dark:text-white">Platform Features</h2>
                             <p className="text-slate-500 dark:text-slate-400">Everything you need to succeed in the hackathon ecosystem.</p>
                         </div>
-                        <button className="btn-outline px-4 py-2 text-sm rounded-full dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:bg-white/10 dark:backdrop-blur-sm">View all features</button>
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-8">
@@ -121,9 +117,9 @@ export default function Home() {
                         <div>
                             <h4 className="font-bold mb-4 text-slate-900 dark:text-white">PLATFORM</h4>
                             <div className="text-slate-500 flex flex-col gap-2.5 dark:text-slate-400">
-                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Hackathons</span>
-                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Teammates</span>
-                                <span className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Internships</span>
+                                <Link to="/hackathons" className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Hackathons</Link>
+                                <Link to="/teams" className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Find Teammates</Link>
+                                <Link to="/internships" className="hover:text-blue-600 cursor-pointer dark:hover:text-blue-400 transition-colors">Internships</Link>
                             </div>
                         </div>
                         <div>

@@ -75,8 +75,11 @@ app.get('/dashboard', isAdmin, async (req, res) => {
     try {
         const totalUsers = await User.countDocuments();
         const totalHackathons = await Hackathon.countDocuments();
-        // Since we don't have an activeHackathons metric readily available, mock it
-        const activeHackathons = Math.floor(totalHackathons * 0.8) || 0; 
+        // "Active" = live hackathons whose deadline hasn't passed yet
+        const activeHackathons = await Hackathon.countDocuments({
+            status: 'live',
+            deadline: { $gte: new Date() },
+        });
         
         res.render('dashboard', { 
             path: '/dashboard',

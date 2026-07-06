@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers, getRecommendedTeammates } from '../services/api';
+import { getAllUsers, getRecommendedTeammates, getHackathons } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
@@ -13,11 +13,26 @@ export default function Teams() {
     const { user: currentUser } = useAuth();
     const socket = useSocket();
     const [inviteMessage, setInviteMessage] = useState('');
+    const [hackathons, setHackathons] = useState([]);
 
     // Filter states
     const [skillFilter, setSkillFilter] = useState('');
     const [uniFilter, setUniFilter] = useState('');
     const [expFilter, setExpFilter] = useState('');
+    const PAGE_SIZE = 8;
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+    const filteredList = useMemo(() => users.filter(user => {
+        const matchSkill = !skillFilter || user.skills?.some(s => s.name.toLowerCase().includes(skillFilter.toLowerCase()));
+        const matchUni = !uniFilter || user.university.toLowerCase().includes(uniFilter.toLowerCase());
+        const matchExp = !expFilter || user.experienceLevel === expFilter;
+        return matchSkill && matchUni && matchExp;
+    }), [users, skillFilter, uniFilter, expFilter]);
+
+    // Reset visible count whenever the filters change
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE);
+    }, [skillFilter, uniFilter, expFilter]);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -39,19 +54,34 @@ export default function Teams() {
                 // Filter out the logged-in user so they don't appear in the talent list
                 const filteredUsers = currentUserId ? response.data.filter(u => u._id !== currentUserId) : response.data;
 
-                const formattedUsers = filteredUsers.map(user => ({
-                    id: user._id,
-                    name: user.name,
-                    profileImage: user.profileImage || "",
-                    university: user.university || "University Not Specified",
-                    major: user.role || "Role Not Specified",
-                    matchPercentage: user.matchScore !== undefined ? user.matchScore : Math.floor(Math.random() * (99 - 70 + 1)) + 70,
-                    skills: user.skills ? user.skills.map(skill => ({ name: skill.name || skill })) : [],
-                    roleRequirement: user.bio || "Looking for a team",
-                    hackathons: user.hackathonsParticipated?.length || 0,
-                    projects: 0,
-                    interests: []
-                }));
+                const LEVEL_RANK = { beginner: 1, intermediate: 2, advanced: 3 };
+                const formattedUsers = filteredUsers.map(user => {
+                    const skills = user.skills
+                        ? user.skills.map(skill => (typeof skill === 'string'
+                            ? { name: skill }
+                            : { name: skill.name, level: skill.level, type: skill.type }))
+                        : [];
+                    // Overall experience = the user's highest-ranked skill level
+                    const experienceLevel = skills.reduce((best, s) => {
+                        const rank = LEVEL_RANK[(s.type || '').toLowerCase()] || 0;
+                        return rank > best.rank ? { level: (s.type || '').toLowerCase(), rank } : best;
+                    }, { level: '', rank: 0 }).level;
+
+                    return {
+                        id: user._id,
+                        name: user.name,
+                        profileImage: user.profileImage || "",
+                        university: user.university || "University Not Specified",
+                        major: user.role || "Role Not Specified",
+                        matchPercentage: user.matchScore !== undefined ? user.matchScore : null,
+                        skills,
+                        experienceLevel,
+                        roleRequirement: user.bio || "Looking for a team",
+                        hackathons: user.hackathonsParticipated?.length || 0,
+                        projects: 0,
+                        interests: []
+                    };
+                });
                 setUsers(formattedUsers);
             } catch (err) {
                 console.error("Failed to fetch users:", err);
@@ -63,6 +93,18 @@ export default function Teams() {
 
         fetchUsers();
     }, [currentUser]);
+
+    useEffect(() => {
+        const fetchHackathons = async () => {
+            try {
+                const res = await getHackathons();
+                setHackathons(res.data || []);
+            } catch (err) {
+                console.error("Failed to fetch hackathons for invite panel:", err);
+            }
+        };
+        fetchHackathons();
+    }, []);
 
     return (
         <div className="flex flex-col flex-1 font-sans text-slate-800 overflow-x-hidden transition-colors duration-300 dark:text-slate-200">
@@ -144,41 +186,35 @@ export default function Teams() {
                         </div>
                     ) : error ? (
                         <div className="text-center py-20 text-red-500 font-medium">{error}</div>
-                    ) : (() => {
-                        // Apply filters
-                        const filteredList = users.filter(user => {
-                            const matchSkill = !skillFilter || user.skills?.some(s => s.name.toLowerCase().includes(skillFilter.toLowerCase()));
-                            const matchUni = !uniFilter || user.university.toLowerCase().includes(uniFilter.toLowerCase());
-                            return matchSkill && matchUni;
-                        });
-
-                        if (filteredList.length === 0) {
-                            return <div className="text-center py-20 text-slate-500 font-medium">No talents found matching your filters.</div>;
-                        }
-
-                        return (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                {filteredList.map((talent) => (
-                                    <TeamCard
-                                        key={talent.id}
-                                        filterMatched={talent}
-                                        onInviteClick={(user) => {
-                                            setSelectedUser(user);
-                                            setInviteMessage(`Hey ${user.name?.split(' ')[0]}! I saw you have great experience with ${user.skills && user.skills.length > 0 ? user.skills[0].name : 'your tech stack'}. We are looking for a teammate who can handle the ${user.major && user.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${user.major && user.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`);
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        );
-                    })()}
+                    ) : filteredList.length === 0 ? (
+                        <div className="text-center py-20 text-slate-500 font-medium">No talents found matching your filters.</div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {filteredList.slice(0, visibleCount).map((talent) => (
+                                <TeamCard
+                                    key={talent.id}
+                                    filterMatched={talent}
+                                    onInviteClick={(user) => {
+                                        setSelectedUser(user);
+                                        setInviteMessage(`Hey ${user.name?.split(' ')[0]}! I saw you have great experience with ${user.skills && user.skills.length > 0 ? user.skills[0].name : 'your tech stack'}. We are looking for a teammate who can handle the ${user.major && user.major.includes('Science') ? 'backend' : 'frontend'} while I work on the ${user.major && user.major.includes('Science') ? 'frontend' : 'backend'} for the AI hackathon. Interested?`);
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </section>
 
                 {/* VIEW MORE TALENTS */}
-                <div className="flex justify-center mb-10">
-                    <button className="px-8 py-3.5 bg-white border border-gray-200 text-slate-800 font-bold rounded-full shadow-sm hover:shadow-md hover:border-gray-300 hover:bg-gray-50 transition-all dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] dark:hover:border-white/40 dark:hover:bg-white/10 dark:backdrop-blur-md">
-                        View More Talents
-                    </button>
-                </div>
+                {!loading && !error && visibleCount < filteredList.length && (
+                    <div className="flex justify-center mb-10">
+                        <button
+                            onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+                            className="px-8 py-3.5 bg-white border border-gray-200 text-slate-800 font-bold rounded-full shadow-sm hover:shadow-md hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all dark:bg-white/5 dark:border-white/20 dark:text-white dark:hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] dark:hover:border-white/40 dark:hover:bg-white/10 dark:backdrop-blur-md"
+                        >
+                            View More Talents ({filteredList.length - visibleCount} more)
+                        </button>
+                    </div>
+                )}
             </main>
 
             {/* FOOTER */}
@@ -221,7 +257,7 @@ export default function Teams() {
                     ></div>
 
                     {/* Slide Panel */}
-                    <div className="relative w-full max-w-md bg-white border-l border-gray-200 h-full shadow-2xl flex flex-col animate-[slideIn_0.3s_ease-out] transition-colors duration-300 dark:bg-slate-900 dark:border-white/10 dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
+                    <div className="relative w-full max-w-md bg-white border-l border-gray-200 h-full shadow-2xl flex flex-col animate-slideIn transition-colors duration-300 dark:bg-slate-900 dark:border-white/10 dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)]">
                         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 dark:bg-slate-900/50 dark:backdrop-blur-xl dark:border-white/10">
                             <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Invite to Team</h2>
                             <button
@@ -257,8 +293,13 @@ export default function Teams() {
                                 <label className="block text-[13px] font-bold text-slate-700 mb-2 dark:text-slate-300">Select Hackathon</label>
                                 <div className="relative">
                                     <select className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-sm text-slate-900 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50 dark:shadow-inner">
-                                        <option>Global AI Innovations 2024</option>
-                                        <option>Web3 Builders Hack</option>
+                                        {hackathons.length === 0 ? (
+                                            <option>No hackathons available</option>
+                                        ) : (
+                                            hackathons.map(h => (
+                                                <option key={h._id} value={h._id}>{h.title}</option>
+                                            ))
+                                        )}
                                     </select>
                                     <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
@@ -317,15 +358,6 @@ export default function Teams() {
                     </div>
                 </div>
             )}
-
-            {/* Slide Animation Keyframes */}
-            <style dangerouslySetInnerHTML={{
-                __html: `
-        @keyframes slideIn {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-      `}} />
         </div>
     );
 }

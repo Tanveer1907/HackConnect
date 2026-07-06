@@ -78,29 +78,7 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-12">
-                        {/* Learning Card */}
-                        <div className="xl:col-span-2 bg-white rounded-3xl p-8 border border-gray-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 hover:shadow-md hover:border-blue-300 transition-all duration-300 group dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] dark:hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
-                            <div className="flex-1 w-full">
-                                <div className="flex justify-between items-center mb-3">
-                                    <h3 className="font-extrabold text-xl text-slate-900 group-hover:text-blue-600 transition-colors dark:text-white dark:group-hover:text-blue-400">Full Stack Certification</h3>
-                                    <span className="text-blue-600 font-bold text-sm bg-blue-50 px-3 py-1 rounded-full border border-blue-200 shadow-sm dark:text-blue-300 dark:bg-blue-500/20 dark:border-blue-500/30 dark:shadow-[0_0_10px_rgba(59,130,246,0.2)]">75%</span>
-                                </div>
-                                <div className="w-full bg-slate-100 rounded-full h-2.5 mb-5 overflow-hidden shadow-inner border border-gray-200 dark:bg-slate-800/80 dark:border-white/5">
-                                    <div className="bg-gradient-to-r from-blue-600 to-indigo-400 h-full rounded-full shadow-sm dark:shadow-[0_0_10px_rgba(59,130,246,0.8)]" style={{ width: '75%' }}></div>
-                                </div>
-                                <p className="text-slate-600 mb-8 leading-relaxed dark:text-slate-300">Complete the 'Advanced React' module to earn your badge and get recognized by top employers.</p>
-                                <div className="flex flex-wrap gap-4">
-                                    <button className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-[0_4px_15px_rgba(59,130,246,0.4)] hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 transition-all">Resume Learning</button>
-                                    <button className="px-6 py-2.5 bg-white text-slate-700 font-bold rounded-xl hover:bg-gray-50 border border-gray-200 transition-all shadow-sm dark:bg-white/10 dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:backdrop-blur-sm dark:hover:border-white/30 dark:hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">View Details</button>
-                                </div>
-                            </div>
-                            <div className="w-full md:w-56 h-40 rounded-2xl bg-slate-900 overflow-hidden flex-shrink-0 shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 relative group-hover:border-blue-500/30 transition-colors">
-                                <img src="/assets/hackathons/global-game-jam.jpg" alt="Code" className="w-full h-full object-cover opacity-60 mix-blend-overlay group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/60 to-transparent"></div>
-                            </div>
-                        </div>
-
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-12">
                         {/* Team Invites */}
                         <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm transition-all duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] dark:hover:border-white/20">
                             <div className="flex justify-between items-center mb-8">

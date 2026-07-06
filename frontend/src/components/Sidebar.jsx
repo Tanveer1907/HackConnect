@@ -66,23 +66,6 @@ export default function Sidebar() {
                     );
                 })}
             </nav>
-
-            <div className="mt-auto pt-10">
-                <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl p-5 relative overflow-hidden shadow-[0_0_20px_rgba(59,130,246,0.5)] border border-blue-500/50">
-                    <div className="absolute top-[-20%] right-[-20%] w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
-                    <div className="absolute bottom-[-20%] left-[-20%] w-16 h-16 bg-white opacity-10 rounded-full blur-xl"></div>
-                    <div className="flex items-center gap-2 mb-2 relative z-10">
-                        <span className="text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.8)]">⭐</span>
-                        <span className="text-sm font-bold text-white drop-shadow-md">Pro Member</span>
-                    </div>
-                    <p className="text-xs text-blue-100 mb-4 relative z-10 opacity-90">
-                        Get access to exclusive hackathons and mentorships.
-                    </p>
-                    <button className="w-full py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/20 text-xs font-bold rounded-xl transition-all duration-300 relative z-10 shadow-[0_4px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:-translate-y-0.5">
-                        Upgrade Plan
-                    </button>
-                </div>
-            </div>
         </aside>
     );
 }

@@ -39,7 +39,9 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                 <div className="mb-6">
                     <div className="flex justify-between items-end mb-3">
                         <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Skills</span>
-                        <span className="text-[13px] font-extrabold text-emerald-600 leading-none drop-shadow-sm dark:text-emerald-400 dark:drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]">{filterMatched.matchPercentage}% Match</span>
+                        {typeof filterMatched.matchPercentage === 'number' && (
+                            <span className="text-[13px] font-extrabold text-emerald-600 leading-none drop-shadow-sm dark:text-emerald-400 dark:drop-shadow-[0_0_5px_rgba(52,211,153,0.5)]">{filterMatched.matchPercentage}% Match</span>
+                        )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {filterMatched.skills.map((skill, idx) => (

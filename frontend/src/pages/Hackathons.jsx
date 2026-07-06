@@ -9,6 +9,9 @@ export default function Hackathons() {
 
     const [mode, setMode] = useState('All');
     const [domain, setDomain] = useState('');
+    const [sort, setSort] = useState('Recommended');
+    const [page, setPage] = useState(1);
+    const PAGE_SIZE = 9;
 
     useEffect(() => {
         const fetchHackathons = async () => {
@@ -32,6 +35,11 @@ export default function Hackathons() {
         fetchHackathons();
     }, [mode, domain]);
 
+    // Reset to the first page whenever the result set or ordering changes
+    useEffect(() => {
+        setPage(1);
+    }, [mode, domain, sort]);
+
     if (loading) {
         return <div className="flex-1 flex justify-center items-center h-screen bg-slate-50 dark:bg-[#0f172a]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
     }
@@ -42,6 +50,20 @@ export default function Hackathons() {
 
     // Prepare statistics logic if needed
     const upcomingCount = hackathons.length;
+    const now = Date.now();
+    const activeCount = hackathons.filter(h => h.deadline && new Date(h.deadline).getTime() >= now).length;
+    const totalHackers = hackathons.reduce((sum, h) => sum + (h.participantCount || 0), 0);
+
+    // Sorting (client-side) + pagination
+    const parsePrize = (p) => parseInt(String(p || '').replace(/[^0-9]/g, ''), 10) || 0;
+    const sortedHackathons = [...hackathons].sort((a, b) => {
+        if (sort === 'Newest') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+        if (sort === 'Prize Pool') return parsePrize(b.prizePool) - parsePrize(a.prizePool);
+        return 0; // Recommended = backend default order
+    });
+    const totalPages = Math.max(1, Math.ceil(sortedHackathons.length / PAGE_SIZE));
+    const currentPage = Math.min(page, totalPages);
+    const pageItems = sortedHackathons.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
     return (
         <div className="bg-slate-50 transition-colors duration-300 dark:bg-transparent flex-1 flex flex-col">
@@ -93,7 +115,7 @@ export default function Hackathons() {
                             <h1 className="text-3xl font-extrabold m-0 mb-2.5 text-slate-900 drop-shadow-sm dark:text-white dark:drop-shadow-md">Upcoming Hackathons</h1>
                             <p className="text-slate-600 m-0 dark:text-slate-400">Discover, compete, and win prizes in global challenges.</p>
                         </div>
-                        <select className="px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none dark:border-white/20 dark:bg-white/5 dark:text-slate-300 dark:focus:ring-blue-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:backdrop-blur-md">
+                        <select value={sort} onChange={e => setSort(e.target.value)} className="px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none cursor-pointer dark:border-white/20 dark:bg-white/5 dark:text-slate-300 dark:focus:ring-blue-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:backdrop-blur-md">
                             <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Recommended</option>
                             <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Newest</option>
                             <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Prize Pool</option>
@@ -106,7 +128,7 @@ export default function Hackathons() {
                             <div className="w-10 h-10 bg-emerald-50 rounded-lg flex justify-center items-center text-xl border border-emerald-100 shadow-sm dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:shadow-[0_0_10px_rgba(16,185,129,0.2)]">📅</div>
                             <div>
                                 <div className="text-xs text-slate-500 uppercase tracking-widest font-bold dark:text-slate-400">Active Now</div>
-                                <div className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors dark:text-white dark:group-hover:text-emerald-400">14 Events</div>
+                                <div className="text-xl font-bold text-slate-900 group-hover:text-emerald-600 transition-colors dark:text-white dark:group-hover:text-emerald-400">{activeCount} Events</div>
                             </div>
                         </div>
                         <div className="bg-white px-5 py-4 rounded-xl flex items-center gap-4 border border-gray-100 flex-1 shadow-sm group hover:border-gray-300 transition-colors dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:hover:border-white/20">
@@ -120,14 +142,17 @@ export default function Hackathons() {
                             <div className="w-10 h-10 bg-orange-50 rounded-lg flex justify-center items-center text-xl border border-orange-100 shadow-sm dark:bg-orange-500/20 dark:border-orange-500/30 dark:shadow-[0_0_10px_rgba(249,115,22,0.2)]">👥</div>
                             <div>
                                 <div className="text-xs text-slate-500 uppercase tracking-widest font-bold dark:text-slate-400">Hackers</div>
-                                <div className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors dark:text-white dark:group-hover:text-orange-400">12k+ Active</div>
+                                <div className="text-xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors dark:text-white dark:group-hover:text-orange-400">{totalHackers > 0 ? `${totalHackers.toLocaleString()}` : '—'} Active</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Cards Grid */}
+                    {pageItems.length === 0 ? (
+                        <div className="text-center py-20 text-slate-500 font-medium dark:text-slate-400">No hackathons found for these filters.</div>
+                    ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {hackathons.map((hackathon, i) => (
+                        {pageItems.map((hackathon, i) => (
                             <Link to={`/hackathon/${hackathon._id}`} key={hackathon._id} className="bg-white rounded-2xl overflow-hidden border border-gray-200 transition-all duration-300 cursor-pointer block hover:shadow-md hover:border-blue-300 hover:-translate-y-1 group shadow-sm dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20 no-underline">
                                 <div className="h-[160px] bg-slate-200 relative dark:bg-slate-800">
                                     <img src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80" alt="Cover" />
@@ -161,7 +186,9 @@ export default function Hackathons() {
                                                     <img src={`https://i.pravatar.cc/150?u=${hackathon._id}b`} alt="u2" className="w-full h-full object-cover" />
                                                 </div>
                                             </div>
-                                            <span className="text-slate-500 text-[12px] font-medium ml-1 dark:text-slate-400">+{Math.floor(Math.random() * 200) + 10}</span>
+                                            {hackathon.participantCount > 0 && (
+                                                <span className="text-slate-500 text-[12px] font-medium ml-1 dark:text-slate-400">+{hackathon.participantCount}</span>
+                                            )}
                                         </div>
                                         <div className="text-right">
                                             <div className="text-[10px] text-slate-500 uppercase font-bold">DEADLINE</div>
@@ -176,13 +203,32 @@ export default function Hackathons() {
                             </Link>
                         ))}
                     </div>
+                    )}
 
                     {/* Pagination */}
-                    <div className="flex justify-center mt-10 gap-2.5">
-                        <button className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">&lt;</button>
-                        <button className="w-9 h-9 rounded-full border-none bg-blue-600 text-white font-bold cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform dark:shadow-[0_4px_10px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">1</button>
-                        <button className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white">&gt;</button>
-                    </div>
+                    {totalPages > 1 && (
+                        <div className="flex justify-center mt-10 gap-2.5">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            >&lt;</button>
+                            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map(p => (
+                                <button
+                                    key={p}
+                                    onClick={() => setPage(p)}
+                                    className={p === currentPage
+                                        ? "w-9 h-9 rounded-full border-none bg-blue-600 text-white font-bold cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-transform dark:shadow-[0_4px_10px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]"
+                                        : "w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"}
+                                >{p}</button>
+                            ))}
+                            <button
+                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="w-9 h-9 rounded-full border border-gray-200 bg-white text-slate-600 hover:bg-gray-50 hover:text-slate-900 transition-colors flex items-center justify-center cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed dark:border-white/20 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white"
+                            >&gt;</button>
+                        </div>
+                    )}
                 </main>
             </div>
 

@@ -19,7 +19,7 @@ export default function Profile() {
                     joined: new Date(u.createdAt).toLocaleDateString() || 'Recently',
                     bio: u.bio || 'No bio provided.',
                     skills: u.skills || [],
-                    tags: ['React', 'Node.js', 'MongoDB'], // default tags
+                    tags: (u.skills || []).map(s => s.name || s),
                     lookingForTeam: u.lookingForTeam || false,
                     profileImage: u.profileImage || ''
                 });
@@ -114,12 +114,11 @@ export default function Profile() {
                                 </p>
                             </div>
 
-                            <div className="md:col-span-2 bg-white rounded-3xl border border-gray-200 p-8 shadow-sm transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)]">
+                            <div className="md:col-span-3 bg-white rounded-3xl border border-gray-200 p-8 shadow-sm transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)]">
                                 <div className="flex justify-between items-center mb-8">
                                     <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-3 tracking-tight drop-shadow-sm dark:text-white">
                                         <span className="text-blue-600 text-2xl drop-shadow-sm dark:text-blue-400 dark:drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]">⚡</span> Skills & Expertise
                                     </h2>
-                                    <span className="text-sm text-blue-600 font-bold cursor-pointer hover:text-blue-700 transition-colors dark:text-blue-400 dark:hover:text-blue-300">View All</span>
                                 </div>
 
                                 <div className="space-y-6 mb-10">
@@ -147,34 +146,6 @@ export default function Profile() {
                                             {tag}
                                         </span>
                                     ))}
-                                </div>
-                            </div>
-
-                            <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-sm hover:border-blue-300 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.1)] dark:hover:border-white/20">
-                                <h2 className="text-xl font-extrabold text-slate-900 mb-8 flex items-center gap-3 tracking-tight drop-shadow-sm dark:text-white">
-                                    <span className="text-yellow-500 text-2xl drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">🏆</span> Badges
-                                </h2>
-                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 text-center">
-                                    <div className="flex flex-col items-center group">
-                                        <div className="w-14 h-14 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-200 shadow-sm flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:bg-yellow-100 transition-all dark:bg-yellow-500/20 dark:text-yellow-400 dark:border-yellow-500/30 dark:shadow-[0_0_15px_rgba(234,179,8,0.2)] dark:group-hover:bg-yellow-500/30">🏆</div>
-                                        <span className="text-[11px] text-slate-600 font-bold group-hover:text-yellow-600 transition-colors dark:text-slate-300 dark:group-hover:text-yellow-400">Winner 2023</span>
-                                    </div>
-                                    <div className="flex flex-col items-center group">
-                                        <div className="w-14 h-14 rounded-full bg-blue-50 text-blue-600 border border-blue-200 shadow-sm flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:bg-blue-100 transition-all dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 dark:shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:group-hover:bg-blue-500/30">💻</div>
-                                        <span className="text-[11px] text-slate-600 font-bold leading-tight group-hover:text-blue-600 transition-colors dark:text-slate-300 dark:group-hover:text-blue-400">Hackathon MVP</span>
-                                    </div>
-                                    <div className="flex flex-col items-center group">
-                                        <div className="w-14 h-14 rounded-full bg-fuchsia-50 text-fuchsia-600 border border-fuchsia-200 shadow-sm flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:bg-fuchsia-100 transition-all dark:bg-fuchsia-500/20 dark:text-fuchsia-400 dark:border-fuchsia-500/30 dark:shadow-[0_0_15px_rgba(217,70,239,0.2)] dark:group-hover:bg-fuchsia-500/30">👥</div>
-                                        <span className="text-[11px] text-slate-600 font-bold group-hover:text-fuchsia-600 transition-colors dark:text-slate-300 dark:group-hover:text-fuchsia-400">Top Mentor</span>
-                                    </div>
-                                    <div className="flex flex-col items-center mt-2 group">
-                                        <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 shadow-sm flex items-center justify-center text-2xl mb-3 group-hover:scale-110 group-hover:bg-emerald-100 transition-all dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30 dark:shadow-[0_0_15px_rgba(16,185,129,0.2)] dark:group-hover:bg-emerald-500/30">🚀</div>
-                                        <span className="text-[11px] text-slate-600 font-bold group-hover:text-emerald-600 transition-colors dark:text-slate-300 dark:group-hover:text-emerald-400">First Launch</span>
-                                    </div>
-                                    <div className="flex flex-col items-center mt-2 md:opacity-40">
-                                        <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-500 border border-dashed border-gray-300 flex items-center justify-center text-2xl mb-3 dark:bg-slate-800 dark:border-white/20">🔒</div>
-                                        <span className="text-[11px] text-slate-500 font-bold">Locked</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
