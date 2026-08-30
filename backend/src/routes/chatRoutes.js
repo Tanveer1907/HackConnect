@@ -14,9 +14,18 @@ router.get('/:roomId', auth, async (req, res) => {
         const userId = req.user.user.id;
 
         // Verify user is part of the room
-        const roomUsers = roomId.split('-');
-        if (!roomUsers.includes(userId)) {
-            return res.status(403).json({ message: 'Access denied to this chat room' });
+        if (roomId.startsWith('team-')) {
+            const teamId = roomId.replace('team-', '');
+            const Team = require('../models/Team');
+            const team = await Team.findOne({ _id: teamId, members: userId });
+            if (!team) {
+                return res.status(403).json({ message: 'Access denied to this team channel' });
+            }
+        } else {
+            const roomUsers = roomId.split('-');
+            if (!roomUsers.includes(userId)) {
+                return res.status(403).json({ message: 'Access denied to this chat room' });
+            }
         }
 
         const messages = await Message.find({ roomId })

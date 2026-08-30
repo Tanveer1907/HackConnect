@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import HackathonCard from '../components/HackathonCard';
-import { getHackathons, getMyTeams, acceptTeamRequest } from '../services/api';
+import { getHackathons, getMyTeams, acceptTeamRequest, declineTeamRequest, leaveTeam, deleteTeam } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -15,11 +15,45 @@ export default function Dashboard() {
         try {
             await acceptTeamRequest(teamId, { userIdToAccept: userId });
             toast.success("Request accepted successfully!");
-            // Refresh teams
             const teamsRes = await getMyTeams().catch(() => ({ data: [] }));
             setMyTeams(teamsRes.data);
         } catch (error) {
             toast.error("Error accepting request: " + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleDecline = async (teamId, userId) => {
+        try {
+            await declineTeamRequest(teamId, { userIdToDecline: userId });
+            toast.success("Request declined.");
+            const teamsRes = await getMyTeams().catch(() => ({ data: [] }));
+            setMyTeams(teamsRes.data);
+        } catch (error) {
+            toast.error("Error declining request: " + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleLeaveTeam = async (teamId) => {
+        if (!window.confirm("Are you sure you want to leave this team?")) return;
+        try {
+            await leaveTeam(teamId);
+            toast.success("Left the team.");
+            const teamsRes = await getMyTeams().catch(() => ({ data: [] }));
+            setMyTeams(teamsRes.data);
+        } catch (error) {
+            toast.error("Error leaving team: " + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleDeleteTeam = async (teamId) => {
+        if (!window.confirm("Are you sure you want to delete this team?")) return;
+        try {
+            await deleteTeam(teamId);
+            toast.success("Team deleted.");
+            const teamsRes = await getMyTeams().catch(() => ({ data: [] }));
+            setMyTeams(teamsRes.data);
+        } catch (error) {
+            toast.error("Error deleting team: " + (error.response?.data?.message || error.message));
         }
     };
 
@@ -101,17 +135,19 @@ export default function Dashboard() {
                                             {team.pendingRequests.map((reqUser, idx) => (
                                                 <div key={reqUser._id} className={`group ${idx > 0 ? 'border-t border-gray-100 pt-4 dark:border-white/10' : ''}`}>
                                                     <div className="flex items-center gap-4 mb-3">
-                                                        <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 font-bold text-xl border border-teal-200 shadow-sm overflow-hidden dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500/30">
+                                                        <Link to={`/profile/${reqUser._id}`} className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center text-teal-600 font-bold text-xl border border-teal-200 shadow-sm overflow-hidden shrink-0 dark:bg-teal-500/20 dark:text-teal-400 dark:border-teal-500/30 hover:scale-105 transition-transform">
                                                             {reqUser.profileImage ? <img src={reqUser.profileImage} alt={reqUser.name} className="w-full h-full object-cover"/> : reqUser.name[0]}
-                                                        </div>
+                                                        </Link>
                                                         <div className="flex-1">
-                                                            <h4 className="font-bold text-slate-900 group-hover:text-teal-500 transition-colors dark:text-white dark:group-hover:text-teal-400">{reqUser.name}</h4>
+                                                            <Link to={`/profile/${reqUser._id}`} className="font-bold text-slate-900 group-hover:text-teal-500 transition-colors dark:text-white dark:group-hover:text-teal-400 hover:underline">
+                                                                {reqUser.name}
+                                                            </Link>
                                                             <p className="text-xs text-slate-500 font-medium dark:text-slate-400">{reqUser.email}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-3">
                                                         <button onClick={() => handleAccept(team._id, reqUser._id)} className="flex-1 py-2 bg-blue-600/90 text-white text-xs font-bold rounded-xl hover:bg-blue-500 shadow-[0_4px_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] transition-all">Accept</button>
-                                                        <button className="flex-1 py-2 bg-white border border-gray-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-gray-50 hover:text-slate-900 shadow-sm transition-all dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">Decline</button>
+                                                        <button onClick={() => handleDecline(team._id, reqUser._id)} className="flex-1 py-2 bg-white border border-gray-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 shadow-sm transition-all dark:bg-white/5 dark:border-white/10 dark:text-slate-300 dark:hover:bg-red-500/10 dark:hover:text-red-400">Decline</button>
                                                     </div>
                                                 </div>
                                             ))}
@@ -125,24 +161,46 @@ export default function Dashboard() {
                             </div>
                         </div>
                         
-                        {/* My Teams (To get the Team ID) */}
+                        {/* My Teams */}
                         <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm transition-all duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] dark:hover:border-white/20">
                             <h3 className="font-extrabold text-xl text-slate-900 dark:text-white mb-6">My Active Teams</h3>
                             {myTeams.length === 0 ? (
                                 <p className="text-slate-500 text-sm dark:text-slate-400">You haven't created or joined any teams yet.</p>
                             ) : (
                                 <div className="space-y-4">
-                                    {myTeams.map(team => (
-                                        <div key={team._id} className="flex flex-col gap-2 bg-slate-50 p-4 rounded-xl border border-gray-100 dark:bg-slate-800/50 dark:border-white/5">
-                                            <div className="flex justify-between items-center">
-                                                <h4 className="font-bold text-slate-900 dark:text-white">{team.name}</h4>
-                                                <span className="text-[10px] font-bold px-2 py-1 bg-blue-100 text-blue-600 rounded-md uppercase dark:bg-blue-900/30 dark:text-blue-400">{team.hackathonId?.title || 'Unknown Hackathon'}</span>
+                                    {myTeams.map(team => {
+                                        const isLeader = (team.leaderId?._id || team.leaderId) === user?._id;
+                                        return (
+                                            <div key={team._id} className="flex flex-col gap-3 bg-slate-50 p-4 rounded-2xl border border-gray-100 dark:bg-slate-800/50 dark:border-white/5">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                            {team.name}
+                                                            {isLeader && <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold rounded-md">Leader</span>}
+                                                        </h4>
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-100 text-blue-600 rounded-md uppercase dark:bg-blue-900/30 dark:text-blue-400 inline-block mt-1">
+                                                            {team.hackathonId?.title || 'Hackathon Team'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        {isLeader ? (
+                                                            <button onClick={() => handleDeleteTeam(team._id)} className="text-xs text-red-500 hover:text-red-700 font-semibold px-2 py-1 bg-red-50 dark:bg-red-950/40 rounded-lg transition">
+                                                                Delete Team
+                                                            </button>
+                                                        ) : (
+                                                            <button onClick={() => handleLeaveTeam(team._id)} className="text-xs text-amber-600 hover:text-amber-700 font-semibold px-2 py-1 bg-amber-50 dark:bg-amber-950/40 rounded-lg transition">
+                                                                Leave
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-white/5 text-xs text-slate-500 dark:text-slate-400">
+                                                    <span>Members: <strong>{team.members?.length || 1}</strong></span>
+                                                    <span>Code: <code className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-gray-700 dark:bg-slate-700 dark:text-gray-300 select-all">{team._id}</code></span>
+                                                </div>
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-1 dark:text-slate-400">
-                                                Team ID to share: <span className="font-mono bg-gray-200 px-1.5 py-0.5 rounded text-gray-700 dark:bg-slate-700 dark:text-gray-300 select-all">{team._id}</span>
-                                            </p>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

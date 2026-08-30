@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers, getRecommendedTeammates, getHackathons } from '../services/api';
+import { getAllUsers, getRecommendedTeammates, getHackathons, createTeam } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
@@ -14,6 +14,30 @@ export default function Teams() {
     const socket = useSocket();
     const [inviteMessage, setInviteMessage] = useState('');
     const [hackathons, setHackathons] = useState([]);
+    const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
+    const [newTeamName, setNewTeamName] = useState('');
+    const [selectedHackathonId, setSelectedHackathonId] = useState('');
+    const [creatingTeam, setCreatingTeam] = useState(false);
+
+    const handleCreateTeamSubmit = async (e) => {
+        e.preventDefault();
+        if (!newTeamName.trim()) return toast.error("Please enter a team name");
+        if (!selectedHackathonId) return toast.error("Please select a hackathon");
+
+        setCreatingTeam(true);
+        try {
+            await createTeam({ name: newTeamName, hackathonId: selectedHackathonId });
+            toast.success(`Team "${newTeamName}" created successfully!`);
+            setShowCreateTeamModal(false);
+            setNewTeamName('');
+            setSelectedHackathonId('');
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to create team");
+        } finally {
+            setCreatingTeam(false);
+        }
+    };
 
     // Filter states
     const [skillFilter, setSkillFilter] = useState('');
@@ -128,13 +152,19 @@ export default function Teams() {
                             </p>
 
                             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-                                <button className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white font-bold rounded-full shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:bg-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:-translate-y-1 transition-all w-full sm:w-auto">
+                                <button 
+                                    onClick={() => setShowCreateTeamModal(true)}
+                                    className="flex items-center justify-center gap-2 px-8 py-3.5 bg-blue-600 text-white font-bold rounded-full shadow-[0_4px_20px_rgba(59,130,246,0.4)] hover:bg-blue-500 hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] hover:-translate-y-1 transition-all w-full sm:w-auto"
+                                >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                                    Get Started
+                                    + Create a Team
                                 </button>
-                                <button className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-slate-800 border border-gray-200 hover:bg-gray-50 font-bold rounded-full transition-all w-full sm:w-auto shadow-sm dark:bg-white/5 dark:hover:bg-white/10 dark:text-white dark:border-white/20 dark:backdrop-blur-sm dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)]">
-                                    How it works
-                                </button>
+                                <a 
+                                    href="/hackathons"
+                                    className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-slate-800 border border-gray-200 hover:bg-gray-50 font-bold rounded-full transition-all w-full sm:w-auto shadow-sm dark:bg-white/5 dark:hover:bg-white/10 dark:text-white dark:border-white/20 dark:backdrop-blur-sm dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)]"
+                                >
+                                    Explore Hackathons
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -355,6 +385,78 @@ export default function Teams() {
                                 Send Invitation
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CREATE TEAM MODAL */}
+            {showCreateTeamModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-lg w-full shadow-2xl relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🚀 Create a New Team</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Form your dream team and invite top developers</p>
+                            </div>
+                            <button
+                                onClick={() => setShowCreateTeamModal(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateTeamSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Team Name
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Neural Ninjas, Quantum Bytes"
+                                    value={newTeamName}
+                                    onChange={(e) => setNewTeamName(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Select Hackathon
+                                </label>
+                                <select
+                                    value={selectedHackathonId}
+                                    onChange={(e) => setSelectedHackathonId(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                >
+                                    <option value="">-- Choose a Hackathon --</option>
+                                    {hackathons.map((h) => (
+                                        <option key={h._id} value={h._id}>
+                                            {h.title} ({h.prizePool || '$5k'})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateTeamModal(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={creatingTeam}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
+                                >
+                                    {creatingTeam ? 'Creating...' : 'Create Team'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

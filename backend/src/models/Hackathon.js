@@ -50,6 +50,28 @@ const hackathonSchema = new mongoose.Schema(
             enum: ['pending', 'live', 'rejected'],
             default: 'live',
         },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
+        registeredUsers: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }],
+        submissions: [
+            {
+                submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+                teamName: { type: String },
+                projectTitle: { type: String, required: true },
+                tagline: { type: String },
+                description: { type: String },
+                githubUrl: { type: String },
+                demoUrl: { type: String },
+                videoUrl: { type: String },
+                techStack: [{ type: String }],
+                submittedAt: { type: Date, default: Date.now }
+            }
+        ]
     },
     { timestamps: true }
 );

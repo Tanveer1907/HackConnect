@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { toast } from 'react-hot-toast';
-import { getPendingModeration, moderateItem } from '../services/api';
+import { getPendingModeration, moderateItem, createHackathon, createInternship } from '../services/api';
 
 export default function AdminModeration() {
     const [hackathons, setHackathons] = useState([]);
@@ -13,6 +13,34 @@ export default function AdminModeration() {
     const [editingItem, setEditingItem] = useState(null);
     const [editType, setEditType] = useState('');
     const [editForm, setEditForm] = useState({});
+
+    // Admin direct posting states
+    const [showCreateHackathonModal, setShowCreateHackathonModal] = useState(false);
+    const [isCreatingHackathon, setIsCreatingHackathon] = useState(false);
+    const [hackathonForm, setHackathonForm] = useState({
+        title: '',
+        description: '',
+        domain: 'AI/ML',
+        mode: 'ONLINE',
+        prizePool: '$10,000',
+        teamSize: 4,
+        deadline: '',
+        image: ''
+    });
+
+    const [showCreateInternshipModal, setShowCreateInternshipModal] = useState(false);
+    const [isCreatingInternship, setIsCreatingInternship] = useState(false);
+    const [internshipForm, setInternshipForm] = useState({
+        company: '',
+        role: '',
+        location: 'Remote',
+        mode: 'REMOTE',
+        stipend: '$2,000/month',
+        duration: '3 Months',
+        skills: '',
+        description: '',
+        applyUrl: ''
+    });
 
     const loadPendingData = async () => {
         try {
@@ -30,6 +58,63 @@ export default function AdminModeration() {
     useEffect(() => {
         loadPendingData();
     }, []);
+
+    const handleCreateHackathonSubmit = async (e) => {
+        e.preventDefault();
+        if (!hackathonForm.title.trim() || !hackathonForm.description.trim()) {
+            return toast.error("Please fill in title and description");
+        }
+        setIsCreatingHackathon(true);
+        try {
+            await createHackathon(hackathonForm);
+            toast.success("Hackathon published directly by Admin!");
+            setShowCreateHackathonModal(false);
+            setHackathonForm({
+                title: '',
+                description: '',
+                domain: 'AI/ML',
+                mode: 'ONLINE',
+                prizePool: '$10,000',
+                teamSize: 4,
+                deadline: '',
+                image: ''
+            });
+            loadPendingData();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to create hackathon");
+        } finally {
+            setIsCreatingHackathon(false);
+        }
+    };
+
+    const handleCreateInternshipSubmit = async (e) => {
+        e.preventDefault();
+        if (!internshipForm.company.trim() || !internshipForm.role.trim() || !internshipForm.description.trim()) {
+            return toast.error("Please fill in company, role and description");
+        }
+        setIsCreatingInternship(true);
+        try {
+            await createInternship(internshipForm);
+            toast.success("Internship published directly by Admin!");
+            setShowCreateInternshipModal(false);
+            setInternshipForm({
+                company: '',
+                role: '',
+                location: 'Remote',
+                mode: 'REMOTE',
+                stipend: '$2,000/month',
+                duration: '3 Months',
+                skills: '',
+                description: '',
+                applyUrl: ''
+            });
+            loadPendingData();
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to create internship");
+        } finally {
+            setIsCreatingInternship(false);
+        }
+    };
 
     const handleAction = async (type, id, action) => {
         try {
@@ -93,28 +178,45 @@ export default function AdminModeration() {
                             </div>
                         </div>
 
-                        {/* TAB BAR */}
-                        <div className="flex gap-3 mb-8 border-b border-gray-200 dark:border-white/10 pb-4">
-                            <button
-                                onClick={() => setActiveTab('hackathons')}
-                                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                                    activeTab === 'hackathons'
-                                        ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-white hover:bg-slate-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10'
-                                }`}
-                            >
-                                Hackathons Queue ({hackathons.length})
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('internships')}
-                                className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                                    activeTab === 'internships'
-                                        ? 'bg-emerald-600 text-white shadow-sm'
-                                        : 'bg-white hover:bg-slate-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10'
-                                }`}
-                            >
-                                Internships Queue ({internships.length})
-                            </button>
+                        {/* TAB BAR & ADMIN ACTION BUTTONS */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-gray-200 dark:border-white/10 pb-4">
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setActiveTab('hackathons')}
+                                    className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                                        activeTab === 'hackathons'
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'bg-white hover:bg-slate-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10'
+                                    }`}
+                                >
+                                    Hackathons Queue ({hackathons.length})
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('internships')}
+                                    className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                                        activeTab === 'internships'
+                                            ? 'bg-emerald-600 text-white shadow-sm'
+                                            : 'bg-white hover:bg-slate-100 border border-gray-200 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10'
+                                    }`}
+                                >
+                                    Internships Queue ({internships.length})
+                                </button>
+                            </div>
+
+                            <div className="flex gap-3 w-full sm:w-auto">
+                                <button
+                                    onClick={() => setShowCreateHackathonModal(true)}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5"
+                                >
+                                    <span>+</span> Post Hackathon
+                                </button>
+                                <button
+                                    onClick={() => setShowCreateInternshipModal(true)}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5"
+                                >
+                                    <span>+</span> Post Internship
+                                </button>
+                            </div>
                         </div>
 
                         {/* QUEUE LISTINGS */}
@@ -356,6 +458,295 @@ export default function AdminModeration() {
                             >
                                 SAVE UPDATES
                             </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ADMIN CREATE HACKATHON MODAL */}
+            {showCreateHackathonModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🏆 Post New Hackathon (Admin)</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Publish an official hackathon challenge directly to the live platform</p>
+                            </div>
+                            <button
+                                onClick={() => setShowCreateHackathonModal(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateHackathonSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Hackathon Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Google AI Hackathon 2026"
+                                    value={hackathonForm.title}
+                                    onChange={(e) => setHackathonForm({ ...hackathonForm, title: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Description *
+                                </label>
+                                <textarea
+                                    rows="3"
+                                    placeholder="Describe the challenge, problem statements, and tracks..."
+                                    value={hackathonForm.description}
+                                    onChange={(e) => setHackathonForm({ ...hackathonForm, description: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Domain / Category
+                                    </label>
+                                    <select
+                                        value={hackathonForm.domain}
+                                        onChange={(e) => setHackathonForm({ ...hackathonForm, domain: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    >
+                                        {['AI/ML', 'Blockchain', 'Sustainability', 'Finance/Crypto', 'Healthcare/MedTech', 'Education', 'Cybersecurity', 'Gaming/AR/VR', 'General'].map(d => (
+                                            <option key={d} value={d}>{d}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Mode
+                                    </label>
+                                    <select
+                                        value={hackathonForm.mode}
+                                        onChange={(e) => setHackathonForm({ ...hackathonForm, mode: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    >
+                                        <option value="ONLINE">ONLINE</option>
+                                        <option value="OFFLINE">OFFLINE</option>
+                                        <option value="HYBRID">HYBRID</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Prize Pool
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. $25,000"
+                                        value={hackathonForm.prizePool}
+                                        onChange={(e) => setHackathonForm({ ...hackathonForm, prizePool: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Max Team Size
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={hackathonForm.teamSize}
+                                        onChange={(e) => setHackathonForm({ ...hackathonForm, teamSize: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Deadline
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={hackathonForm.deadline}
+                                        onChange={(e) => setHackathonForm({ ...hackathonForm, deadline: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Cover Banner Image URL (Optional)
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="https://images.unsplash.com/..."
+                                    value={hackathonForm.image}
+                                    onChange={(e) => setHackathonForm({ ...hackathonForm, image: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateHackathonModal(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isCreatingHackathon}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
+                                >
+                                    {isCreatingHackathon ? 'Publishing...' : 'Publish Hackathon'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ADMIN CREATE INTERNSHIP MODAL */}
+            {showCreateInternshipModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">💼 Post New Internship (Admin)</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Publish a verified internship position directly to the live platform</p>
+                            </div>
+                            <button
+                                onClick={() => setShowCreateInternshipModal(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateInternshipSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Company Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Google, Stripe"
+                                        value={internshipForm.company}
+                                        onChange={(e) => setInternshipForm({ ...internshipForm, company: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Role / Position *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Frontend Engineering Intern"
+                                        value={internshipForm.role}
+                                        onChange={(e) => setInternshipForm({ ...internshipForm, role: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Work Mode
+                                    </label>
+                                    <select
+                                        value={internshipForm.mode}
+                                        onChange={(e) => setInternshipForm({ ...internshipForm, mode: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    >
+                                        <option value="REMOTE">REMOTE</option>
+                                        <option value="HYBRID">HYBRID</option>
+                                        <option value="IN_OFFICE">IN_OFFICE</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Location
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. San Francisco / Remote"
+                                        value={internshipForm.location}
+                                        onChange={(e) => setInternshipForm({ ...internshipForm, location: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Stipend
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. $5,000 / mo"
+                                        value={internshipForm.stipend}
+                                        onChange={(e) => setInternshipForm({ ...internshipForm, stipend: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Required Skills (comma separated)
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. React, TypeScript, TailwindCSS"
+                                    value={internshipForm.skills}
+                                    onChange={(e) => setInternshipForm({ ...internshipForm, skills: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Role Description & Responsibilities *
+                                </label>
+                                <textarea
+                                    rows="4"
+                                    placeholder="Describe responsibilities, expectations, and requirements..."
+                                    value={internshipForm.description}
+                                    onChange={(e) => setInternshipForm({ ...internshipForm, description: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateInternshipModal(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isCreatingInternship}
+                                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
+                                >
+                                    {isCreatingInternship ? 'Posting...' : 'Post Internship'}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>

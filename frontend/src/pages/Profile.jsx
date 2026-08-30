@@ -1,49 +1,64 @@
 import React, { useEffect, useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getUserProfile } from '../services/api';
+import { getUserProfile, getUserProfileById } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-hot-toast';
 
 export default function Profile() {
+    const { id } = useParams();
+    const { user: currentUser } = useAuth();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const isOwnProfile = !id || id === currentUser?._id;
 
     useEffect(() => {
         const fetchProfile = async () => {
+            setLoading(true);
             try {
-                const res = await getUserProfile();
+                const res = id ? await getUserProfileById(id) : await getUserProfile();
                 const u = res.data;
                 setProfile({
+                    _id: u._id,
                     name: u.name,
                     email: u.email,
                     role: u.role || 'Developer',
                     university: u.university || 'Not specified',
                     location: u.location || 'Not specified',
-                    joined: new Date(u.createdAt).toLocaleDateString() || 'Recently',
+                    joined: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recently',
                     bio: u.bio || 'No bio provided.',
                     skills: u.skills || [],
-                    tags: (u.skills || []).map(s => s.name || s),
+                    tags: (u.skills || []).map(s => typeof s === 'string' ? s : s.name),
                     lookingForTeam: u.lookingForTeam || false,
                     profileImage: u.profileImage || ''
                 });
             } catch (err) {
                 console.error("Failed to fetch profile", err);
-                // Set minimal fallback 
-                setProfile({
-                    name: 'Guest User',
-                    email: 'No Email',
-                    role: 'Visitor',
-                    university: 'Not specified',
-                    location: 'Not specified',
-                    joined: 'Today',
-                    bio: 'No bio provided.',
-                    skills: [],
-                    tags: [],
-                    profileImage: ''
-                });
+                toast.error("Could not load profile.");
+            } finally {
+                setLoading(false);
             }
         };
         fetchProfile();
-    }, []);
+    }, [id]);
 
-    if (!profile) return <div className="p-10 text-center font-medium text-gray-500">Loading profile...</div>;
+    const handleSendMessage = () => {
+        if (!currentUser) return navigate('/login');
+        if (!profile) return;
+        navigate('/chat');
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-1 justify-center items-center h-screen bg-slate-50 dark:bg-[#0b0f19]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    if (!profile) return <div className="p-10 text-center font-medium text-gray-500">Profile not found.</div>;
 
     return (
         <div className="flex flex-col flex-1 text-slate-800 bg-slate-50 transition-colors duration-300 dark:text-slate-200 dark:bg-transparent">
@@ -52,6 +67,16 @@ export default function Profile() {
 
                 <main className="flex-1 p-6 md:p-10 overflow-y-auto">
                     <div className="max-w-5xl mx-auto">
+
+                        {/* Back navigation if viewing someone else */}
+                        {!isOwnProfile && (
+                            <button 
+                                onClick={() => navigate(-1)} 
+                                className="mb-6 inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition"
+                            >
+                                ← Back
+                            </button>
+                        )}
 
                         {/* Header Card */}
                         <div className="bg-white rounded-3xl border border-gray-200 p-8 md:p-10 shadow-sm mb-8 flex flex-col md:flex-row items-start gap-8 relative overflow-hidden transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
@@ -75,12 +100,21 @@ export default function Profile() {
                                         <p className="text-blue-600 font-bold drop-shadow-sm dark:text-blue-400">{profile.role}</p>
                                     </div>
                                     <div className="flex gap-3 w-full md:w-auto">
-                                        <button
-                                            onClick={() => window.location.href = '/edit-profile'}
-                                            className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"
-                                        >
-                                            <span className="text-lg">✏️</span> Edit Profile
-                                        </button>
+                                        {isOwnProfile ? (
+                                            <Link
+                                                to="/edit-profile"
+                                                className="flex-1 md:flex-none px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]"
+                                            >
+                                                <span className="text-lg">✏️</span> Edit Profile
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                onClick={handleSendMessage}
+                                                className="flex-1 md:flex-none px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)]"
+                                            >
+                                                💬 Send Message
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 

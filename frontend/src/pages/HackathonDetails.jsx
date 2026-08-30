@@ -1,17 +1,77 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getHackathonDetails, createTeam, sendTeamRequest } from '../services/api';
+import { getHackathonDetails, createTeam, sendTeamRequest, registerForHackathon, submitHackathonProject } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function HackathonDetails() {
     const { id } = useParams();
+    const { user } = useAuth();
     const [hackathon, setHackathon] = useState(null);
     const [teamName, setTeamName] = useState('');
     const [joinTeamId, setJoinTeamId] = useState('');
     const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [showJoinTeam, setShowJoinTeam] = useState(false);
+    const [showSubmitModal, setShowSubmitModal] = useState(false);
+    const [isSubmittingProject, setIsSubmittingProject] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState(null);
+
+    const [submitForm, setSubmitForm] = useState({
+        projectTitle: '',
+        tagline: '',
+        description: '',
+        githubUrl: '',
+        demoUrl: '',
+        videoUrl: '',
+        techStack: '',
+        teamName: ''
+    });
+
+    const handleSoloRegister = async () => {
+        setIsRegistering(true);
+        try {
+            await registerForHackathon(id);
+            toast.success("Successfully registered for this hackathon!");
+            const res = await getHackathonDetails(id);
+            setHackathon(res.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Registration failed");
+        } finally {
+            setIsRegistering(false);
+        }
+    };
+
+    const handleProjectSubmit = async (e) => {
+        e.preventDefault();
+        if (!submitForm.projectTitle.trim() || !submitForm.githubUrl.trim()) {
+            return toast.error("Project title and GitHub URL are required");
+        }
+
+        setIsSubmittingProject(true);
+        try {
+            await submitHackathonProject(id, submitForm);
+            toast.success("Project submitted successfully!");
+            setShowSubmitModal(false);
+            setSubmitForm({
+                projectTitle: '',
+                tagline: '',
+                description: '',
+                githubUrl: '',
+                demoUrl: '',
+                videoUrl: '',
+                techStack: '',
+                teamName: ''
+            });
+            const res = await getHackathonDetails(id);
+            setHackathon(res.data);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Submission failed");
+        } finally {
+            setIsSubmittingProject(false);
+        }
+    };
 
     const handleCreateTeam = async () => {
         if (!teamName) return toast.error('Please enter a team name');
@@ -99,12 +159,25 @@ export default function HackathonDetails() {
                                         <p className="font-extrabold text-xl text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.prizePool || '$10,000'}</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-3 w-full md:w-auto">
-                                    <button onClick={() => setShowCreateTeam(!showCreateTeam)} className="w-full md:w-auto px-10 py-3 bg-blue-600 text-white text-lg font-bold rounded-xl shadow-lg shadow-blue-600/30 hover:bg-blue-700 transition-all hover:-translate-y-1 dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)]">
+                                <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                                    <button 
+                                        onClick={handleSoloRegister}
+                                        disabled={isRegistering || hackathon.registeredUsers?.some(u => (u._id || u) === user?._id)}
+                                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/40 text-white font-bold rounded-xl shadow-md transition disabled:cursor-not-allowed"
+                                    >
+                                        {hackathon.registeredUsers?.some(u => (u._id || u) === user?._id) ? '✓ Registered' : isRegistering ? 'Registering...' : 'Register (Solo)'}
+                                    </button>
+                                    <button onClick={() => setShowCreateTeam(!showCreateTeam)} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition">
                                         Create Team
                                     </button>
-                                    <button onClick={() => setShowJoinTeam(!showJoinTeam)} className="w-full md:w-auto px-10 py-3 bg-white border-2 border-blue-600 text-blue-600 text-lg font-bold rounded-xl hover:bg-blue-50 transition-all hover:-translate-y-1 dark:bg-transparent dark:text-blue-400 dark:border-blue-400 dark:hover:bg-blue-900/20">
+                                    <button onClick={() => setShowJoinTeam(!showJoinTeam)} className="px-6 py-3 bg-white border border-gray-200 text-slate-700 font-bold rounded-xl hover:bg-gray-50 transition dark:bg-white/5 dark:text-slate-200 dark:border-white/10">
                                         Join Team
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowSubmitModal(true)}
+                                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-md transition"
+                                    >
+                                        🚀 Submit Project
                                     </button>
                                 </div>
                             </div>
@@ -142,32 +215,200 @@ export default function HackathonDetails() {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
                                     <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5 dark:text-slate-400"><span className="text-red-500 drop-shadow-sm">📅</span> Deadline</div>
-                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.deadline}</div>
+                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">
+                                        {hackathon.deadline ? new Date(hackathon.deadline).toLocaleDateString() : 'Rolling'}
+                                    </div>
                                 </div>
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
                                     <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5 dark:text-slate-400"><span className="text-blue-500 drop-shadow-sm">🎯</span> Domain</div>
-                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.domain}</div>
+                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.domain || 'General'}</div>
                                 </div>
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
                                     <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5 dark:text-slate-400"><span className="text-fuchsia-500 drop-shadow-sm">🌐</span> Mode</div>
-                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.mode}</div>
+                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.mode || 'ONLINE'}</div>
                                 </div>
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
                                     <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5 dark:text-slate-400"><span className="text-emerald-500 drop-shadow-sm">👥</span> Team Size</div>
-                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.teamSize}</div>
+                                    <div className="font-bold text-gray-900 transition-colors duration-300 dark:text-white">Up to {hackathon.teamSize || 4}</div>
                                 </div>
                             </div>
 
-                            <div className="max-w-4xl">
+                            <div className="max-w-4xl mb-12">
                                 <h3 className="text-2xl font-extrabold text-gray-900 mb-4 tracking-tight border-b border-gray-200 pb-4 transition-colors duration-300 dark:text-white dark:border-white/10">About this Hackathon</h3>
-                                <p className="text-gray-600 leading-loose text-lg whitespace-pre-line transition-colors duration-300 dark:text-slate-300">
+                                <p className="text-gray-600 leading-loose text-base whitespace-pre-line transition-colors duration-300 dark:text-slate-300">
                                     {hackathon.description}
                                 </p>
+                            </div>
+
+                            {/* Submissions Gallery */}
+                            <div className="max-w-4xl pt-8 border-t border-gray-200 dark:border-white/10">
+                                <h3 className="text-2xl font-extrabold text-gray-900 mb-6 tracking-tight flex items-center gap-2 dark:text-white">
+                                    💡 Project Submissions ({hackathon.submissions?.length || 0})
+                                </h3>
+
+                                {(!hackathon.submissions || hackathon.submissions.length === 0) ? (
+                                    <div className="p-8 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl text-center text-slate-500 dark:text-slate-400">
+                                        No project submissions yet. Be the first team to submit!
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {hackathon.submissions.map((sub, idx) => (
+                                            <div key={idx} className="p-5 bg-slate-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl flex flex-col justify-between">
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h4 className="font-extrabold text-slate-900 dark:text-white text-lg">{sub.projectTitle}</h4>
+                                                        <span className="text-[10px] px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold rounded-md">{sub.teamName || 'Solo'}</span>
+                                                    </div>
+                                                    {sub.tagline && <p className="text-xs text-slate-600 dark:text-slate-300 mb-3 font-medium">{sub.tagline}</p>}
+                                                    {sub.description && <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3">{sub.description}</p>}
+                                                    {sub.techStack && sub.techStack.length > 0 && (
+                                                        <div className="flex flex-wrap gap-1.5 mb-4">
+                                                            {sub.techStack.map((tech, tIdx) => (
+                                                                <span key={tIdx} className="text-[10px] bg-slate-200/60 dark:bg-white/10 px-2 py-0.5 rounded text-slate-700 dark:text-slate-300 font-semibold">{tech}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-white/5">
+                                                    {sub.githubUrl && (
+                                                        <a href={sub.githubUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline">
+                                                            GitHub ↗
+                                                        </a>
+                                                    )}
+                                                    {sub.demoUrl && (
+                                                        <a href={sub.demoUrl} target="_blank" rel="noreferrer" className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline ml-3">
+                                                            Live Demo ↗
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </main>
             </div>
+
+            {/* PROJECT SUBMISSION MODAL */}
+            {showSubmitModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🚀 Submit Your Project</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Showcase your hackathon creation</p>
+                            </div>
+                            <button
+                                onClick={() => setShowSubmitModal(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleProjectSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Project Title *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. HealthAI Assistant"
+                                    value={submitForm.projectTitle}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, projectTitle: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Team Name / Submitter
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Neural Ninjas"
+                                    value={submitForm.teamName}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, teamName: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Tagline (One sentence pitch)
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. AI-powered real-time diagnostic engine for rural clinics"
+                                    value={submitForm.tagline}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, tagline: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    GitHub Repository URL *
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="https://github.com/username/project"
+                                    value={submitForm.githubUrl}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, githubUrl: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Live Demo / Website URL
+                                </label>
+                                <input
+                                    type="url"
+                                    placeholder="https://my-app.vercel.app"
+                                    value={submitForm.demoUrl}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, demoUrl: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                    Tech Stack (comma separated)
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="React, Node.js, TensorFlow, Tailwind"
+                                    value={submitForm.techStack}
+                                    onChange={(e) => setSubmitForm({ ...submitForm, techStack: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowSubmitModal(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSubmittingProject}
+                                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
+                                >
+                                    {isSubmittingProject ? 'Submitting...' : 'Submit Project'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

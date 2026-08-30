@@ -43,6 +43,21 @@ router.get('/:id', internshipController.getInternshipById);
 // @access  Private
 router.post('/:id/apply', authMiddleware, upload.single('resume'), internshipController.applyToInternship);
 
+// @route   POST /api/internships
+// @desc    Post a new internship
+// @access  Private
+router.post('/', authMiddleware, internshipController.createInternship);
+
+// @route   GET /api/internships/:id/applicants
+// @desc    Get all applicants for an internship
+// @access  Private
+router.get('/:id/applicants', authMiddleware, internshipController.getInternshipApplicants);
+
+// @route   PUT /api/internships/application/:id/status
+// @desc    Update applicant status (reviewing/shortlisted/accepted/rejected)
+// @access  Private
+router.put('/application/:id/status', authMiddleware, internshipController.updateApplicationStatus);
+
 // @route   PUT /api/internships/application/:id/withdraw
 // @desc    Withdraw internship application
 // @access  Private

@@ -115,11 +115,13 @@ export default function Hackathons() {
                             <h1 className="text-3xl font-extrabold m-0 mb-2.5 text-slate-900 drop-shadow-sm dark:text-white dark:drop-shadow-md">Upcoming Hackathons</h1>
                             <p className="text-slate-600 m-0 dark:text-slate-400">Discover, compete, and win prizes in global challenges.</p>
                         </div>
-                        <select value={sort} onChange={e => setSort(e.target.value)} className="px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none cursor-pointer dark:border-white/20 dark:bg-white/5 dark:text-slate-300 dark:focus:ring-blue-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:backdrop-blur-md">
-                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Recommended</option>
-                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Newest</option>
-                            <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Prize Pool</option>
-                        </select>
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <select value={sort} onChange={e => setSort(e.target.value)} className="px-4 py-2 rounded-full border border-gray-200 bg-white text-slate-700 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm appearance-none cursor-pointer dark:border-white/20 dark:bg-white/5 dark:text-slate-300 dark:focus:ring-blue-500/50 dark:shadow-[0_4px_15px_rgba(0,0,0,0.1)] dark:backdrop-blur-md">
+                                <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Recommended</option>
+                                <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Newest</option>
+                                <option className="bg-white text-slate-900 dark:bg-slate-800 dark:text-white">Prize Pool</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Stats Bar */}

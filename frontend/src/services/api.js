@@ -16,17 +16,28 @@ export const registerUser = (userData) => api.post('/auth/register', userData);
 export const loginUser = (userData) => api.post('/auth/login', userData);
 export const forgotPassword = (emailData) => api.post('/auth/forgot-password', emailData);
 export const resetPassword = (resetData) => api.post('/auth/reset-password', resetData);
-export const getHackathons = (query = '') => api.get(`/hackathons${query}`);
-export const getHackathonDetails = (id) => api.get(`/hackathons/${id}`);
+
+// --- User Profile Endpoints ---
 export const getUserProfile = () => api.get('/users/profile');
+export const getUserProfileById = (id) => api.get(`/users/profile/${id}`);
 export const updateUserProfile = (profileData) => api.put('/users/profile', profileData);
 export const getAllUsers = () => api.get('/users');
+
+// --- Hackathon Endpoints ---
+export const getHackathons = (query = '') => api.get(`/hackathons${query}`);
+export const getHackathonDetails = (id) => api.get(`/hackathons/${id}`);
+export const createHackathon = (data) => api.post('/hackathons', data);
+export const registerForHackathon = (id) => api.post(`/hackathons/${id}/register`);
+export const submitHackathonProject = (id, data) => api.post(`/hackathons/${id}/submit`, data);
 
 // --- Internship Endpoints ---
 export const getInternships = (query = '') => api.get(`/internships${query}`);
 export const getInternshipDetails = (id) => api.get(`/internships/${id}`);
+export const createInternship = (data) => api.post('/internships', data);
 export const applyToInternship = (id, applicationData) => api.post(`/internships/${id}/apply`, applicationData);
 export const getMyInternshipApplications = () => api.get('/internships/my-applications');
+export const getInternshipApplicants = (id) => api.get(`/internships/${id}/applicants`);
+export const updateApplicationStatus = (id, status) => api.put(`/internships/application/${id}/status`, { status });
 export const withdrawInternshipApplication = (id) => api.put(`/internships/application/${id}/withdraw`);
 
 // --- Admin Moderation Endpoints ---
@@ -36,8 +47,13 @@ export const moderateItem = (type, id, action, data = {}) => api.put(`/admin/mod
 // --- Team Endpoints ---
 export const createTeam = (teamData) => api.post('/team/create', teamData);
 export const getMyTeams = () => api.get('/team/my-teams');
+export const getTeamDetails = (id) => api.get(`/team/${id}`);
 export const sendTeamRequest = (teamId) => api.post(`/team/${teamId}/request`);
 export const acceptTeamRequest = (teamId, data) => api.put(`/team/${teamId}/accept`, data);
+export const declineTeamRequest = (teamId, data) => api.put(`/team/${teamId}/decline`, data);
+export const leaveTeam = (teamId) => api.put(`/team/${teamId}/leave`);
+export const removeTeamMember = (teamId, data) => api.put(`/team/${teamId}/remove-member`, data);
+export const deleteTeam = (teamId) => api.delete(`/team/${teamId}`);
 
 // --- Recommendation Endpoint ---
 export const getRecommendedTeammates = () => api.get('/users/recommendations');

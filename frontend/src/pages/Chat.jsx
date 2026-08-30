@@ -306,15 +306,24 @@ export default function Chat() {
                                  onClick={() => setCurrentRoom(chat.roomId)}
                                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors group ${isActive ? 'bg-slate-100 dark:bg-white/5' : 'hover:bg-slate-50 dark:hover:bg-white/5'}`}>
                                 <div className="relative shrink-0">
-                                    <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-lg font-bold text-blue-600 dark:text-blue-400 border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm">
-                                        {initial}
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold border-2 border-transparent group-hover:border-white dark:group-hover:border-[#1e293b] shadow-sm ${
+                                        chat.isTeamChat 
+                                            ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-300' 
+                                            : 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400'
+                                    }`}>
+                                        {chat.isTeamChat ? '👥' : initial}
                                     </div>
                                     {isActive && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-slate-100 dark:border-[#1e293b] rounded-full"></div>}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline mb-0.5">
-                                        <h3 className={`text-sm font-bold truncate transition-colors ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                                        <h3 className={`text-sm font-bold truncate transition-colors flex items-center gap-1.5 ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
                                             {name}
+                                            {chat.isTeamChat && (
+                                                <span className="text-[9px] px-1.5 py-0.2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded font-bold uppercase">
+                                                    Team
+                                                </span>
+                                            )}
                                         </h3>
                                         <span className="text-xs text-slate-400 dark:text-slate-500">{time}</span>
                                     </div>

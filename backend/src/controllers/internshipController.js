@@ -144,3 +144,88 @@ exports.withdrawApplication = async (req, res) => {
         res.status(500).json({ message: 'Server Error withdrawing application' });
     }
 };
+
+/**
+ * Allows recruiters / users to create a new internship posting.
+ */
+exports.createInternship = async (req, res) => {
+    try {
+        const { company, role, location, mode, stipend, duration, skills, description, applyUrl, deadline, logo } = req.body;
+        const userId = req.user.user.id;
+
+        if (!company || !role || !description) {
+            return res.status(400).json({ message: 'Company, role, and description are required' });
+        }
+
+        const parsedSkills = Array.isArray(skills) 
+            ? skills 
+            : typeof skills === 'string' 
+                ? skills.split(',').map(s => s.trim()).filter(Boolean) 
+                : [];
+
+        const newInternship = new Internship({
+            company,
+            role,
+            location: location || 'Remote',
+            mode: mode ? mode.toUpperCase() : 'REMOTE',
+            stipend: stipend || 'Competitive / Unpaid',
+            duration: duration || '3 Months',
+            skills: parsedSkills,
+            description,
+            applyUrl: applyUrl || '',
+            deadline: deadline ? new Date(deadline) : null,
+            logo: logo || '💼',
+            postedBy: userId,
+            status: 'live'
+        });
+
+        await newInternship.save();
+        res.status(201).json({ message: 'Internship posted successfully!', internship: newInternship });
+    } catch (error) {
+        console.error('[createInternship] Error:', error);
+        res.status(500).json({ message: 'Server Error posting internship' });
+    }
+};
+
+/**
+ * Retrieves all applicants for a specific internship (for poster / admin review).
+ */
+exports.getInternshipApplicants = async (req, res) => {
+    try {
+        const internshipId = req.params.id;
+        const applications = await InternshipApplication.find({ internshipId })
+            .populate('userId', 'name email university role skills profileImage bio')
+            .sort({ createdAt: -1 });
+
+        res.json(applications);
+    } catch (error) {
+        console.error('[getInternshipApplicants] Error:', error);
+        res.status(500).json({ message: 'Server Error fetching applicants' });
+    }
+};
+
+/**
+ * Updates application status (reviewing, shortlisted, accepted, rejected).
+ */
+exports.updateApplicationStatus = async (req, res) => {
+    try {
+        const { status } = req.body;
+        const validStatuses = ['applied', 'reviewing', 'shortlisted', 'accepted', 'rejected', 'withdrawn'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: `Invalid status. Must be one of: ${validStatuses.join(', ')}` });
+        }
+
+        const application = await InternshipApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        application.status = status;
+        await application.save();
+
+        res.json({ message: `Application marked as ${status}`, application });
+    } catch (error) {
+        console.error('[updateApplicationStatus] Error:', error);
+        res.status(500).json({ message: 'Server Error updating application status' });
+    }
+};

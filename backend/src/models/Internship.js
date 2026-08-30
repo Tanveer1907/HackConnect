@@ -53,6 +53,10 @@ const internshipSchema = new mongoose.Schema(
             enum: ['pending', 'live', 'rejected'],
             default: 'live', // Manual posts default to live, scraped to pending
         },
+        postedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        },
     },
     { timestamps: true }
 );

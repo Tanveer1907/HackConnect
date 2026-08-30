@@ -162,3 +162,111 @@ exports.acceptTeamRequest = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
+
+exports.declineTeamRequest = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const leaderId = req.user.user.id;
+        const { userIdToDecline } = req.body;
+
+        if (!userIdToDecline) {
+            return res.status(400).json({ message: 'Please provide userIdToDecline' });
+        }
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (team.leaderId.toString() !== leaderId) {
+            return res.status(401).json({ message: 'User not authorized to decline requests for this team' });
+        }
+
+        team.pendingRequests = team.pendingRequests.filter(id => id.toString() !== userIdToDecline);
+        await team.save();
+
+        res.json({ message: 'Request declined', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.leaveTeam = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const userId = req.user.user.id;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (team.leaderId.toString() === userId) {
+            return res.status(400).json({ message: 'Team leader cannot leave the team. Transfer leadership or delete the team.' });
+        }
+
+        team.members = team.members.filter(id => id.toString() !== userId);
+        await team.save();
+
+        res.json({ message: 'Successfully left the team', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.removeMember = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const leaderId = req.user.user.id;
+        const { memberIdToRemove } = req.body;
+
+        if (!memberIdToRemove) {
+            return res.status(400).json({ message: 'Please provide memberIdToRemove' });
+        }
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (team.leaderId.toString() !== leaderId) {
+            return res.status(401).json({ message: 'Only team leader can remove members' });
+        }
+
+        if (memberIdToRemove === leaderId) {
+            return res.status(400).json({ message: 'Leader cannot be removed' });
+        }
+
+        team.members = team.members.filter(id => id.toString() !== memberIdToRemove);
+        await team.save();
+
+        res.json({ message: 'Member removed successfully', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.deleteTeam = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const leaderId = req.user.user.id;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (team.leaderId.toString() !== leaderId) {
+            return res.status(401).json({ message: 'Only the team leader can delete this team' });
+        }
+
+        await Team.findByIdAndDelete(teamId);
+        res.json({ message: 'Team deleted successfully' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};

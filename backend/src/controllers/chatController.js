@@ -1,11 +1,13 @@
 const Message = require('../models/Message');
+const Team = require('../models/Team');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 exports.getMyChats = async (req, res) => {
     try {
         const userId = req.user.user.id;
         
-        // Find all messages where the roomId contains the user's ID
+        // 1. Direct Messages
         const chats = await Message.aggregate([
             { $match: { roomId: { $regex: userId } } },
             { $sort: { createdAt: -1 } },
@@ -18,8 +20,6 @@ exports.getMyChats = async (req, res) => {
             { $sort: { "latestMessage.createdAt": -1 } }
         ]);
 
-        const User = require('../models/User');
-        
         const populatedChats = await Promise.all(chats.map(async (chat) => {
             const roomId = chat._id;
             const ids = roomId.split('-');
@@ -27,17 +27,36 @@ exports.getMyChats = async (req, res) => {
             
             let otherUser = null;
             if (otherUserId && mongoose.Types.ObjectId.isValid(otherUserId)) {
-                otherUser = await User.findById(otherUserId).select('username email name');
+                otherUser = await User.findById(otherUserId).select('name email profileImage role');
             }
 
             return {
                 roomId: chat._id,
+                isTeamChat: false,
                 latestMessage: chat.latestMessage,
                 otherUser: otherUser
             };
         }));
 
-        res.json(populatedChats);
+        // 2. User's Team Group Channels
+        const myTeams = await Team.find({ members: userId }).populate('hackathonId', 'title');
+        const teamChats = await Promise.all(myTeams.map(async (t) => {
+            const teamRoomId = `team-${t._id}`;
+            const latestMsg = await Message.findOne({ roomId: teamRoomId })
+                .populate('sender', 'name')
+                .sort({ createdAt: -1 });
+
+            return {
+                roomId: teamRoomId,
+                isTeamChat: true,
+                teamName: t.name,
+                hackathonTitle: t.hackathonId?.title || 'Hackathon Team',
+                latestMessage: latestMsg || { text: 'Welcome to team chat!', createdAt: t.createdAt },
+                otherUser: { name: `Team: ${t.name}`, role: 'Group Channel' }
+            };
+        }));
+
+        res.json([...teamChats, ...populatedChats.filter(c => c.otherUser)]);
     } catch (error) {
         console.error('Error fetching chats:', error);
         res.status(500).json({ message: 'Server error fetching chats' });

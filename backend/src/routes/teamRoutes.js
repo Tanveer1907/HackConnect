@@ -6,7 +6,11 @@ const {
     getTeamById,
     getMyTeams,
     sendTeamRequest,
-    acceptTeamRequest
+    acceptTeamRequest,
+    declineTeamRequest,
+    leaveTeam,
+    removeMember,
+    deleteTeam
 } = require('../controllers/teamController');
 
 // All team routes require authentication
@@ -31,5 +35,21 @@ router.post('/:id/request', sendTeamRequest);
 // @route   PUT /api/team/:id/accept
 // @desc    Accept a user's request to join (leader only)
 router.put('/:id/accept', acceptTeamRequest);
+
+// @route   PUT /api/team/:id/decline
+// @desc    Decline a user's request to join (leader only)
+router.put('/:id/decline', declineTeamRequest);
+
+// @route   PUT /api/team/:id/leave
+// @desc    Leave a team (members only)
+router.put('/:id/leave', leaveTeam);
+
+// @route   PUT /api/team/:id/remove-member
+// @desc    Remove a member from team (leader only)
+router.put('/:id/remove-member', removeMember);
+
+// @route   DELETE /api/team/:id
+// @desc    Delete a team (leader only)
+router.delete('/:id', deleteTeam);
 
 module.exports = router;

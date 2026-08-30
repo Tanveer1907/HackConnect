@@ -1,6 +1,10 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function TeamCard({ filterMatched, onInviteClick }) {
+    const navigate = useNavigate();
+    const userId = filterMatched.id || filterMatched._id;
+
     return (
         <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden hover:-translate-y-1.5 hover:shadow-md hover:border-blue-300 transition-all duration-300 flex flex-col h-full relative group shadow-sm dark:bg-white/5 dark:backdrop-blur-xl dark:border-white/10 dark:hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
 
@@ -11,7 +15,7 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                 {/* Header: Profile and Info Stack */}
                 <div className="flex items-start gap-4 mb-6">
                     {/* Left: Avatar */}
-                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 mt-0.5 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] flex items-center justify-center">
+                    <Link to={`/profile/${userId}`} className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-slate-100 border-2 border-white shadow-sm overflow-hidden shrink-0 mt-0.5 dark:bg-slate-800 dark:border-slate-700 dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] flex items-center justify-center hover:scale-105 transition-transform">
                         {filterMatched.profileImage ? (
                             <img src={filterMatched.profileImage} alt={filterMatched.name} className="w-full h-full object-cover" />
                         ) : (
@@ -19,11 +23,13 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                                 {filterMatched.name ? filterMatched.name.charAt(0) : 'U'}
                             </div>
                         )}
-                    </div>
+                    </Link>
 
                     {/* Right: Info and Badge Stack */}
                     <div className="flex flex-col flex-1">
-                        <h3 className="font-extrabold text-slate-900 text-lg leading-tight mb-1 group-hover:text-blue-600 transition-colors drop-shadow-sm dark:text-white dark:group-hover:text-blue-400">{filterMatched.name}</h3>
+                        <Link to={`/profile/${userId}`} className="font-extrabold text-slate-900 text-lg leading-tight mb-1 group-hover:text-blue-600 transition-colors drop-shadow-sm dark:text-white dark:group-hover:text-blue-400 hover:underline">
+                            {filterMatched.name}
+                        </Link>
                         <p className="text-xs text-slate-500 font-medium mb-0.5 dark:text-slate-400">{filterMatched.university}</p>
                         <p className="text-[11px] font-bold text-blue-600 mb-3 dark:text-blue-400">{filterMatched.major}</p>
 
@@ -46,7 +52,7 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                     <div className="flex flex-wrap gap-2">
                         {filterMatched.skills.map((skill, idx) => (
                             <div key={idx} className="bg-slate-50 border border-gray-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:shadow-inner">
-                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{skill.name}</span>
+                                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">{skill.name || skill}</span>
                                 {skill.level && <span className="text-[10px] font-bold text-slate-500">{skill.level}</span>}
                             </div>
                         ))}
@@ -56,25 +62,25 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                 {/* Role Need Badge */}
                 <div className="mb-6">
                     <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-600 text-[11px] font-bold px-3 py-1.5 rounded-full border border-indigo-200 shadow-sm dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 dark:shadow-[0_0_10px_rgba(99,102,241,0.2)]">
-                        <span className="text-sm">🗣️</span> {filterMatched.roleRequirement}
+                        <span className="text-sm">🗣️</span> {filterMatched.roleRequirement || 'Fullstack Developer'}
                     </span>
                 </div>
 
                 {/* Stats Flex */}
                 <div className="grid grid-cols-2 gap-4 border-t border-b border-gray-100 py-4 mb-6 text-center mt-auto bg-slate-50 rounded-xl dark:border-white/10 dark:bg-black/20">
                     <div>
-                        <div className="text-xl font-extrabold text-slate-900 mb-0.5 dark:text-white">{filterMatched.hackathons}</div>
+                        <div className="text-xl font-extrabold text-slate-900 mb-0.5 dark:text-white">{filterMatched.hackathons || 2}</div>
                         <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Hackathons</div>
                     </div>
                     <div>
-                        <div className="text-xl font-extrabold text-slate-900 mb-0.5 dark:text-white">{filterMatched.projects}</div>
+                        <div className="text-xl font-extrabold text-slate-900 mb-0.5 dark:text-white">{filterMatched.projects || 4}</div>
                         <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Projects</div>
                     </div>
                 </div>
 
                 {/* Hashtags */}
                 <div className="flex flex-wrap gap-2 mb-8">
-                    {filterMatched.interests.map(tag => (
+                    {(filterMatched.interests || []).map(tag => (
                         <span key={tag} className="text-xs font-semibold text-slate-500 bg-white border border-gray-200 px-2 py-1 rounded-md shadow-sm dark:text-slate-400 dark:bg-white/5 dark:border-white/10">
                             #{tag}
                         </span>
@@ -89,12 +95,20 @@ export default function TeamCard({ filterMatched, onInviteClick }) {
                     >
                         Invite
                     </button>
-                    <button className="w-12 h-12 flex items-center justify-center bg-white text-slate-500 rounded-xl hover:bg-gray-50 hover:text-slate-900 transition-colors border border-gray-200 hover:border-gray-300 shadow-sm dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white dark:hover:border-white/30">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <button 
+                        onClick={() => navigate('/chat')}
+                        title="Chat" 
+                        className="w-12 h-12 flex items-center justify-center bg-white text-slate-500 rounded-xl hover:bg-gray-50 hover:text-slate-900 transition-colors border border-gray-200 hover:border-gray-300 shadow-sm dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white dark:hover:border-white/30"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                     </button>
-                    <button className="w-12 h-12 flex items-center justify-center bg-white text-slate-500 rounded-xl hover:bg-gray-50 hover:text-slate-900 transition-colors border border-gray-200 hover:border-gray-300 shadow-sm dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white dark:hover:border-white/30">
+                    <Link
+                        to={`/profile/${userId}`}
+                        title="View Profile" 
+                        className="w-12 h-12 flex items-center justify-center bg-white text-slate-500 rounded-xl hover:bg-gray-50 hover:text-slate-900 transition-colors border border-gray-200 hover:border-gray-300 shadow-sm dark:bg-white/5 dark:text-slate-300 dark:border-white/10 dark:hover:bg-white/10 dark:hover:text-white dark:hover:border-white/30"
+                    >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>

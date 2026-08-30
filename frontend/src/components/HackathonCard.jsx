@@ -2,8 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HackathonCard({ hackathon }) {
-    const isStartsIn = hackathon.isStartsIn;
-
     return (
         <Link to={`/hackathon/${hackathon._id || hackathon.id || 1}`} className="block bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-300 hover:-translate-y-1 group dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
             <div className="h-44 bg-gray-100 relative dark:bg-slate-800">
