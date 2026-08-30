@@ -14,6 +14,7 @@ import Dashboard from './pages/Dashboard';
 import HackathonDetails from './pages/HackathonDetails';
 import Chat from './pages/Chat';
 import EditProfile from './pages/EditProfile';
+import CompleteProfile from './pages/CompleteProfile';
 import MyApplications from './pages/MyApplications';
 import AdminModeration from './pages/AdminModeration';
 import './App.css';
@@ -47,6 +48,7 @@ const AppContent = () => {
 
         {/* Protected Routes */}
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+        <Route path="/complete-profile" element={<ProtectedRoute><CompleteProfile /></ProtectedRoute>} />
         <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
         <Route path="/hackathons" element={<ProtectedRoute><Hackathons /></ProtectedRoute>} />
         <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />

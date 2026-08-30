@@ -54,6 +54,13 @@ exports.updateUserProfile = async (req, res) => {
         if (lookingForTeam !== undefined) profileFields.lookingForTeam = lookingForTeam;
         if (profileImage !== undefined) profileFields.profileImage = profileImage;
 
+        // Determine profile completion
+        const skillsArr = Array.isArray(skills) ? skills : [];
+        const validSkills = skillsArr.filter(s => s && (typeof s === 'string' ? s.trim() : s.name?.trim()));
+        if (university || validSkills.length > 0 || req.body.isProfileCompleted) {
+            profileFields.isProfileCompleted = true;
+        }
+
         const user = await User.findByIdAndUpdate(
             req.user.user.id,
             { $set: profileFields },

@@ -22,7 +22,33 @@ exports.registerUser = async (req, res) => {
 
         await user.save();
 
-        res.status(201).json({ message: 'User registered successfully' });
+        const payload = {
+            user: {
+                id: user.id
+            }
+        };
+
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET || 'secret',
+            { expiresIn: '10h' },
+            (err, token) => {
+                if (err) throw err;
+                const userData = {
+                    _id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    skills: user.skills,
+                    bio: user.bio,
+                    isProfileCompleted: user.isProfileCompleted || false
+                };
+                res.status(201).json({ 
+                    message: 'User registered successfully',
+                    token, 
+                    user: userData 
+                });
+            }
+        );
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server error');
@@ -60,8 +86,13 @@ exports.loginUser = async (req, res) => {
                     _id: user.id,
                     name: user.name,
                     email: user.email,
+                    university: user.university,
+                    location: user.location,
+                    role: user.role,
                     skills: user.skills,
                     bio: user.bio,
+                    profileImage: user.profileImage,
+                    isProfileCompleted: user.isProfileCompleted || false
                 };
                 res.json({ token, user: userData });
             }

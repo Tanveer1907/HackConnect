@@ -72,7 +72,7 @@ export default function Dashboard() {
                                     <p className="text-xs text-amber-700/80 dark:text-amber-500/80">Add your university and skills so others can recommend and invite you to teams.</p>
                                 </div>
                             </div>
-                            <Link to="/profile" className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap">
+                            <Link to="/complete-profile" className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap">
                                 Complete Profile
                             </Link>
                         </div>

@@ -4,9 +4,11 @@ import { registerUser } from '../services/api';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -52,18 +54,23 @@ export default function Register() {
 
         setLoading(true);
         try {
-            await registerUser({
+            const res = await registerUser({
                 name: formData.name,
                 email: formData.email,
                 password: formData.password
             });
-            toast.success("Account created successfully!");
-            navigate('/login');
+            const { token, user } = res.data;
+            if (token) {
+                login(token, user);
+                toast.success("Account created! Let's complete your profile.");
+                navigate('/complete-profile');
+            } else {
+                toast.success("Account created successfully!");
+                navigate('/login');
+            }
         } catch (err) {
             console.error("Registration failed", err);
             toast.error(err.response?.data?.message || 'Failed to create account.');
-            // Fallback for UI testing
-            // navigate('/login');
         } finally {
             setLoading(false);
         }

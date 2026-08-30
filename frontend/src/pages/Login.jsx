@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { loginUser } from '../services/api';
+import { loginUser, getUserProfile } from '../services/api';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
@@ -15,17 +15,35 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const oauthProcessed = useRef(false);
 
     useEffect(() => {
         const token = searchParams.get('token');
         const err = searchParams.get('error');
 
-        if (token) {
+        if (token && !oauthProcessed.current) {
+            oauthProcessed.current = true;
+            localStorage.setItem('token', token);
             login(token);
-            toast.success('Successfully logged in with OAuth!');
-            navigate('/dashboard', { replace: true });
+            toast.success('Successfully logged in!');
+
+            // Check profile completion to decide destination
+            getUserProfile()
+                .then((res) => {
+                    const u = res.data;
+                    const isComplete = u && u.isProfileCompleted && u.university && u.skills && u.skills.length > 0;
+                    if (isComplete) {
+                        navigate('/dashboard', { replace: true });
+                    } else {
+                        navigate('/complete-profile', { replace: true });
+                    }
+                })
+                .catch(() => {
+                    navigate('/complete-profile', { replace: true });
+                });
         }
-        if (err) {
+        if (err && !oauthProcessed.current) {
+            oauthProcessed.current = true;
             toast.error('OAuth Authentication failed. Please try again.');
         }
     }, [searchParams, navigate, login]);
@@ -44,7 +62,13 @@ export default function Login() {
             const { token, user } = response.data;
             login(token, user);
             toast.success('Successfully logged in!');
-            navigate('/dashboard');
+
+            const isComplete = user && user.isProfileCompleted && user.university && user.skills && user.skills.length > 0;
+            if (isComplete) {
+                navigate('/dashboard');
+            } else {
+                navigate('/complete-profile');
+            }
         } catch (err) {
             console.error('Login Failed:', err);
             const errorMsg = err.response?.data?.message || 'Failed to login. Please check your credentials.';
