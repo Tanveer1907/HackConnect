@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getHackathonDetails, createTeam, sendTeamRequest, registerForHackathon, submitHackathonProject } from '../services/api';
+import { getHackathonDetails, createTeam, sendTeamRequest, registerForHackathon } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -13,21 +13,8 @@ export default function HackathonDetails() {
     const [joinTeamId, setJoinTeamId] = useState('');
     const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [showJoinTeam, setShowJoinTeam] = useState(false);
-    const [showSubmitModal, setShowSubmitModal] = useState(false);
-    const [isSubmittingProject, setIsSubmittingProject] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState(null);
-
-    const [submitForm, setSubmitForm] = useState({
-        projectTitle: '',
-        tagline: '',
-        description: '',
-        githubUrl: '',
-        demoUrl: '',
-        videoUrl: '',
-        techStack: '',
-        teamName: ''
-    });
 
     const handleSoloRegister = async () => {
         setIsRegistering(true);
@@ -40,36 +27,6 @@ export default function HackathonDetails() {
             toast.error(err.response?.data?.message || "Registration failed");
         } finally {
             setIsRegistering(false);
-        }
-    };
-
-    const handleProjectSubmit = async (e) => {
-        e.preventDefault();
-        if (!submitForm.projectTitle.trim() || !submitForm.githubUrl.trim()) {
-            return toast.error("Project title and GitHub URL are required");
-        }
-
-        setIsSubmittingProject(true);
-        try {
-            await submitHackathonProject(id, submitForm);
-            toast.success("Project submitted successfully!");
-            setShowSubmitModal(false);
-            setSubmitForm({
-                projectTitle: '',
-                tagline: '',
-                description: '',
-                githubUrl: '',
-                demoUrl: '',
-                videoUrl: '',
-                techStack: '',
-                teamName: ''
-            });
-            const res = await getHackathonDetails(id);
-            setHackathon(res.data);
-        } catch (err) {
-            toast.error(err.response?.data?.message || "Submission failed");
-        } finally {
-            setIsSubmittingProject(false);
         }
     };
 
@@ -167,50 +124,20 @@ export default function HackathonDetails() {
                                     >
                                         {hackathon.registeredUsers?.some(u => (u._id || u) === user?._id) ? '✓ Registered' : isRegistering ? 'Registering...' : 'Register (Solo)'}
                                     </button>
-                                    <button onClick={() => setShowCreateTeam(!showCreateTeam)} className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition">
+                                    <button 
+                                        onClick={() => setShowCreateTeam(true)} 
+                                        className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition"
+                                    >
                                         Create Team
                                     </button>
-                                    <button onClick={() => setShowJoinTeam(!showJoinTeam)} className="px-6 py-3 bg-white border border-gray-200 text-slate-700 font-bold rounded-xl hover:bg-gray-50 transition dark:bg-white/5 dark:text-slate-200 dark:border-white/10">
-                                        Join Team
-                                    </button>
                                     <button 
-                                        onClick={() => setShowSubmitModal(true)}
-                                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-md transition"
+                                        onClick={() => setShowJoinTeam(true)} 
+                                        className="px-6 py-3 bg-white border border-gray-200 text-slate-700 font-bold rounded-xl hover:bg-gray-50 transition dark:bg-white/5 dark:text-slate-200 dark:border-white/10"
                                     >
-                                        🚀 Submit Project
+                                        Join Team
                                     </button>
                                 </div>
                             </div>
-                            
-                            {/* Actions Dropdowns */}
-                            {(showCreateTeam || showJoinTeam) && (
-                                <div className="mb-10 p-6 bg-blue-50 rounded-2xl border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
-                                    {showCreateTeam && (
-                                        <div className="flex flex-col sm:flex-row gap-4 items-center">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Enter Team Name" 
-                                                value={teamName}
-                                                onChange={(e) => setTeamName(e.target.value)}
-                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                            />
-                                            <button onClick={handleCreateTeam} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">Submit</button>
-                                        </div>
-                                    )}
-                                    {showJoinTeam && (
-                                        <div className="flex flex-col sm:flex-row gap-4 items-center">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Enter Team ID to Join" 
-                                                value={joinTeamId}
-                                                onChange={(e) => setJoinTeamId(e.target.value)}
-                                                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:border-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
-                                            />
-                                            <button onClick={handleJoinTeam} className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all">Send Request</button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                                 <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10">
@@ -291,121 +218,108 @@ export default function HackathonDetails() {
                 </main>
             </div>
 
-            {/* PROJECT SUBMISSION MODAL */}
-            {showSubmitModal && (
+            {/* CREATE TEAM MODAL */}
+            {showCreateTeam && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
-                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-xl w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-md w-full shadow-2xl relative">
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🚀 Submit Your Project</h3>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Showcase your hackathon creation</p>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🚀 Create a Team</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Form a new squad for {hackathon.title}</p>
                             </div>
                             <button
-                                onClick={() => setShowSubmitModal(false)}
+                                onClick={() => setShowCreateTeam(false)}
                                 className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
                             >
                                 ✕
                             </button>
                         </div>
 
-                        <form onSubmit={handleProjectSubmit} className="space-y-4">
+                        <div className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Project Title *
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. HealthAI Assistant"
-                                    value={submitForm.projectTitle}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, projectTitle: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Team Name / Submitter
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Team Name *
                                 </label>
                                 <input
                                     type="text"
                                     placeholder="e.g. Neural Ninjas"
-                                    value={submitForm.teamName}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, teamName: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Tagline (One sentence pitch)
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. AI-powered real-time diagnostic engine for rural clinics"
-                                    value={submitForm.tagline}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, tagline: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    GitHub Repository URL *
-                                </label>
-                                <input
-                                    type="url"
-                                    placeholder="https://github.com/username/project"
-                                    value={submitForm.githubUrl}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, githubUrl: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Live Demo / Website URL
-                                </label>
-                                <input
-                                    type="url"
-                                    placeholder="https://my-app.vercel.app"
-                                    value={submitForm.demoUrl}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, demoUrl: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Tech Stack (comma separated)
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="React, Node.js, TensorFlow, Tailwind"
-                                    value={submitForm.techStack}
-                                    onChange={(e) => setSubmitForm({ ...submitForm, techStack: e.target.value })}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    value={teamName}
+                                    onChange={(e) => setTeamName(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    autoFocus
                                 />
                             </div>
 
                             <div className="pt-4 flex gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => setShowSubmitModal(false)}
+                                    onClick={() => setShowCreateTeam(false)}
                                     className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
                                 >
                                     Cancel
                                 </button>
                                 <button
-                                    type="submit"
-                                    disabled={isSubmittingProject}
-                                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm shadow-md transition disabled:opacity-50"
+                                    type="button"
+                                    onClick={handleCreateTeam}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm shadow-md transition"
                                 >
-                                    {isSubmittingProject ? 'Submitting...' : 'Submit Project'}
+                                    Create Team
                                 </button>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* JOIN TEAM MODAL */}
+            {showJoinTeam && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-md w-full shadow-2xl relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">🤝 Join an Existing Team</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Enter the Team ID shared by your team leader</p>
+                            </div>
+                            <button
+                                onClick={() => setShowJoinTeam(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Team ID *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Enter 24-character Team ID"
+                                    value={joinTeamId}
+                                    onChange={(e) => setJoinTeamId(e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                    autoFocus
+                                />
+                            </div>
+
+                            <div className="pt-4 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowJoinTeam(false)}
+                                    className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleJoinTeam}
+                                    className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm shadow-md transition"
+                                >
+                                    Send Request
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
