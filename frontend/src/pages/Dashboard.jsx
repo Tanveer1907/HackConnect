@@ -24,6 +24,7 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         const fetchDashboardData = async () => {
             try {
                 const [hackathonsRes, teamsRes] = await Promise.all([

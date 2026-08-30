@@ -79,9 +79,11 @@ export default function Navbar() {
         );
     };
 
+    const logoDestination = token ? '/dashboard' : '/';
+
     return (
         <nav className="sticky top-0 z-50 flex items-center justify-between px-10 py-5 bg-white/90 border-b border-gray-200 shadow-sm backdrop-blur-xl transition-colors duration-300 dark:bg-[#0f172a]/70 dark:border-white/10 dark:shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
-            <Link to="/" className="flex items-center gap-2.5 font-extrabold text-slate-900 text-xl tracking-tight dark:text-white">
+            <Link to={logoDestination} className="flex items-center gap-2.5 font-extrabold text-slate-900 text-xl tracking-tight dark:text-white">
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-[0_4px_10px_rgba(37,99,235,0.3)] dark:bg-blue-500 dark:shadow-[0_0_15px_rgba(59,130,246,0.5)]">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                 </div>

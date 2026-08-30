@@ -19,7 +19,7 @@ import MyApplications from './pages/MyApplications';
 import AdminModeration from './pages/AdminModeration';
 import './App.css';
 
-// Simple guard to redirect logged-in users away from public pages
+// Simple guard to redirect logged-in users away from auth pages (login/register/forgot-password)
 const PublicRoute = ({ children }) => {
   const isAuthenticated = !!localStorage.getItem('token');
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
@@ -31,16 +31,32 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
+// Component to scroll window to top on every route transition
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [pathname]);
+
+  return null;
+};
+
 const AppContent = () => {
   const location = useLocation();
   const isChat = location.pathname === '/chat';
 
   return (
     <div className={`App flex flex-col font-sans antialiased ${isChat ? 'h-screen overflow-hidden' : 'min-h-screen'} bg-slate-50 text-slate-800 transition-colors duration-300 dark:text-slate-200 dark:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] dark:from-slate-900 dark:via-[#0f172a] dark:to-black`}>
+      <ScrollToTop />
       <Navbar />
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
+        {/* Public Landing Page - Always accessible */}
+        <Route path="/" element={<Home />} />
+
+        {/* Auth Pages (Redirect to dashboard if already logged in) */}
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/signup" element={<Navigate to="/register" replace />} />
