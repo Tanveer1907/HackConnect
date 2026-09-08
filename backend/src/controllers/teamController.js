@@ -270,3 +270,133 @@ exports.deleteTeam = async (req, res) => {
         res.status(500).send('Server Error');
     }
 };
+
+exports.inviteMember = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const leaderId = req.user.user.id;
+        const { userIdToInvite, message } = req.body;
+
+        if (!userIdToInvite) {
+            return res.status(400).json({ message: 'User ID to invite is required' });
+        }
+
+        const team = await Team.findById(teamId).populate('hackathonId', 'title');
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (team.leaderId.toString() !== leaderId) {
+            return res.status(401).json({ message: 'Only the team leader can invite members' });
+        }
+
+        if (team.members.some(id => id.toString() === userIdToInvite)) {
+            return res.status(400).json({ message: 'User is already a member of this team' });
+        }
+
+        if (team.invitations && team.invitations.some(id => id.toString() === userIdToInvite)) {
+            return res.status(400).json({ message: 'User has already been invited to this team' });
+        }
+
+        const hackathon = await Hackathon.findById(team.hackathonId);
+        const maxTeamSize = hackathon ? (hackathon.teamSize || 4) : 4;
+        if (team.members.length >= maxTeamSize) {
+            return res.status(400).json({ message: `Team is already full (limit is ${maxTeamSize} members)` });
+        }
+
+        if (!team.invitations) team.invitations = [];
+        team.invitations.push(userIdToInvite);
+        await team.save();
+
+        const Message = require('../models/Message');
+        const sortedIds = [leaderId.toString(), userIdToInvite.toString()].sort();
+        const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
+
+        const inviteText = message && message.trim() 
+            ? message.trim()
+            : `Hey! I invited you to join my team "${team.name}" for ${team.hackathonId?.title || 'a hackathon'}. Check your Dashboard to accept!`;
+
+        const autoMsg = new Message({
+            roomId,
+            sender: leaderId,
+            text: inviteText
+        });
+        await autoMsg.save();
+
+        res.json({ message: 'Invitation sent successfully', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.getMyInvitations = async (req, res) => {
+    try {
+        const userId = req.user.user.id;
+        const invitations = await Team.find({ invitations: userId })
+            .populate('hackathonId', 'title location startDate prizePool')
+            .populate('leaderId', 'name email profileImage university')
+            .populate('members', 'name profileImage');
+
+        res.json(invitations);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.acceptInvitation = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const userId = req.user.user.id;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        if (!team.invitations || !team.invitations.some(id => id.toString() === userId)) {
+            return res.status(400).json({ message: 'No invitation found for this team' });
+        }
+
+        const existingTeam = await Team.findOne({ hackathonId: team.hackathonId, members: userId });
+        if (existingTeam) {
+            return res.status(400).json({ message: 'You are already in a team for this hackathon' });
+        }
+
+        const hackathon = await Hackathon.findById(team.hackathonId);
+        const maxTeamSize = hackathon ? (hackathon.teamSize || 4) : 4;
+        if (team.members.length >= maxTeamSize) {
+            return res.status(400).json({ message: `Team is already full (limit is ${maxTeamSize} members)` });
+        }
+
+        team.invitations = team.invitations.filter(id => id.toString() !== userId);
+        team.members.push(userId);
+        await team.save();
+
+        res.json({ message: 'Successfully joined team!', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.declineInvitation = async (req, res) => {
+    try {
+        const teamId = req.params.id;
+        const userId = req.user.user.id;
+
+        const team = await Team.findById(teamId);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        team.invitations = (team.invitations || []).filter(id => id.toString() !== userId);
+        await team.save();
+
+        res.json({ message: 'Invitation declined', team });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};

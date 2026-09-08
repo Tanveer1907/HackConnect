@@ -88,16 +88,22 @@ exports.getRecommendedTeammates = async (req, res) => {
             lookingForTeam: true
         }).select('-password');
 
-        const mySkillNames = currentUser.skills.map(s => s.name.toLowerCase());
+        const mySkillNames = (currentUser.skills || []).map(s => (s.name || s).toLowerCase().trim());
 
         const recommendations = potentialTeammates.map(user => {
-            let matchScore = 0;
-            user.skills.forEach(skill => {
-                if (mySkillNames.includes(skill.name.toLowerCase())) {
-                    matchScore += 10;
+            const theirSkills = (user.skills || []).map(s => (s.name || s).toLowerCase().trim());
+            const shared = theirSkills.filter(s => mySkillNames.includes(s));
+            const union = new Set([...mySkillNames, ...theirSkills]);
+
+            let matchScore = 25; // baseline interest
+            if (union.size > 0 && mySkillNames.length > 0) {
+                const jaccard = shared.length / union.size;
+                matchScore = Math.min(98, Math.round(25 + (jaccard * 73)));
+                if (shared.length > 0 && matchScore < 50) {
+                    matchScore = Math.min(98, 50 + (shared.length * 10));
                 }
-            });
-            
+            }
+
             return {
                 ...user.toObject(),
                 matchScore
@@ -110,5 +116,23 @@ exports.getRecommendedTeammates = async (req, res) => {
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server Error');
+    }
+};
+
+exports.uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file || !req.file.path) {
+            return res.status(400).json({ message: 'No image file uploaded' });
+        }
+        const user = await User.findById(req.user.user.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.profileImage = req.file.path;
+        await user.save();
+
+        res.json({ message: 'Profile picture updated successfully', profileImage: user.profileImage, user });
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        res.status(500).json({ message: 'Failed to upload avatar: ' + error.message });
     }
 };

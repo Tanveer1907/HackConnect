@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import TeamCard from '../components/TeamCard';
-import { getAllUsers, getRecommendedTeammates, getHackathons, createTeam } from '../services/api';
+import SkeletonCard from '../components/SkeletonCard';
+import { getAllUsers, getRecommendedTeammates, getHackathons, createTeam, getMyTeams, inviteTeamMember } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
@@ -19,6 +20,24 @@ export default function Teams() {
     const [selectedHackathonId, setSelectedHackathonId] = useState('');
     const [creatingTeam, setCreatingTeam] = useState(false);
 
+    const [myLeaderTeams, setMyLeaderTeams] = useState([]);
+    const [selectedTeamId, setSelectedTeamId] = useState('');
+    const [sendingInvite, setSendingInvite] = useState(false);
+
+    const fetchLeaderTeams = useCallback(async () => {
+        if (!currentUser) return;
+        try {
+            const res = await getMyTeams();
+            const leaderOnly = (res.data || []).filter(t => (t.leaderId?._id || t.leaderId) === (currentUser?._id || currentUser?.id));
+            setMyLeaderTeams(leaderOnly);
+            if (leaderOnly.length > 0) {
+                setSelectedTeamId(prev => prev || leaderOnly[0]._id);
+            }
+        } catch (err) {
+            console.error("Failed to load leader teams", err);
+        }
+    }, [currentUser]);
+
     const handleCreateTeamSubmit = async (e) => {
         e.preventDefault();
         if (!newTeamName.trim()) return toast.error("Please enter a team name");
@@ -26,16 +45,50 @@ export default function Teams() {
 
         setCreatingTeam(true);
         try {
-            await createTeam({ name: newTeamName, hackathonId: selectedHackathonId });
+            const res = await createTeam({ name: newTeamName, hackathonId: selectedHackathonId });
             toast.success(`Team "${newTeamName}" created successfully!`);
             setShowCreateTeamModal(false);
             setNewTeamName('');
             setSelectedHackathonId('');
+            await fetchLeaderTeams();
+            if (res.data?._id) setSelectedTeamId(res.data._id);
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.message || "Failed to create team");
         } finally {
             setCreatingTeam(false);
+        }
+    };
+
+    const handleSendInvite = async () => {
+        if (!selectedTeamId) {
+            return toast.error("Please select an active team, or create one first!");
+        }
+        setSendingInvite(true);
+        try {
+            await inviteTeamMember(selectedTeamId, {
+                userIdToInvite: selectedUser.id || selectedUser._id,
+                message: inviteMessage
+            });
+
+            if (currentUser && selectedUser && socket) {
+                const sortedIds = [currentUser._id.toString(), (selectedUser.id || selectedUser._id).toString()].sort();
+                const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
+                socket.emit('send_message', {
+                    roomId,
+                    senderId: currentUser._id,
+                    text: inviteMessage || `Hey! I invited you to join our team. Check your Dashboard to accept!`,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            toast.success(`Invitation sent to ${selectedUser.name}!`);
+            setSelectedUser(null);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to send invitation");
+        } finally {
+            setSendingInvite(false);
         }
     };
 
@@ -116,7 +169,8 @@ export default function Teams() {
         };
 
         fetchUsers();
-    }, [currentUser]);
+        fetchLeaderTeams();
+    }, [currentUser, fetchLeaderTeams]);
 
     useEffect(() => {
         const fetchHackathons = async () => {
@@ -211,13 +265,27 @@ export default function Teams() {
                 {/* PROFILE CARDS GRID */}
                 <section className="mx-auto max-w-[1400px] px-6 md:px-12 mb-16">
                     {loading ? (
-                        <div className="flex justify-center items-center py-20">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {[...Array(8)].map((_, i) => (
+                                <SkeletonCard key={i} type="talent" />
+                            ))}
                         </div>
                     ) : error ? (
                         <div className="text-center py-20 text-red-500 font-medium">{error}</div>
                     ) : filteredList.length === 0 ? (
-                        <div className="text-center py-20 text-slate-500 font-medium">No talents found matching your filters.</div>
+                        <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10 p-10 max-w-lg mx-auto">
+                            <div className="text-5xl mb-4">🔍</div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No Talents Found</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                No developers match your current filters. Try changing your search query or reset filters.
+                            </p>
+                            <button
+                                onClick={() => { setSkillFilter(''); setUniFilter(''); setExpFilter(''); }}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-full transition shadow-sm"
+                            >
+                                Reset All Filters
+                            </button>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {filteredList.slice(0, visibleCount).map((talent) => (
@@ -320,21 +388,45 @@ export default function Teams() {
 
                             {/* Form */}
                             <div className="mb-6">
-                                <label className="block text-[13px] font-bold text-slate-700 mb-2 dark:text-slate-300">Select Hackathon</label>
-                                <div className="relative">
-                                    <select className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-sm text-slate-900 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50 dark:shadow-inner">
-                                        {hackathons.length === 0 ? (
-                                            <option>No hackathons available</option>
-                                        ) : (
-                                            hackathons.map(h => (
-                                                <option key={h._id} value={h._id}>{h.title}</option>
-                                            ))
-                                        )}
-                                    </select>
-                                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                                    </div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label className="block text-[13px] font-bold text-slate-700 dark:text-slate-300">Choose Your Team *</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateTeamModal(true)}
+                                        className="text-xs text-blue-600 hover:text-blue-500 font-bold dark:text-blue-400"
+                                    >
+                                        + New Team
+                                    </button>
                                 </div>
+                                {myLeaderTeams.length === 0 ? (
+                                    <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-500/30 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between">
+                                        <span>You don't lead any active teams yet.</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowCreateTeamModal(true)}
+                                            className="px-2.5 py-1 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-500"
+                                        >
+                                            Create One
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        <select
+                                            value={selectedTeamId}
+                                            onChange={(e) => setSelectedTeamId(e.target.value)}
+                                            className="w-full pl-4 pr-10 py-3 bg-white border border-gray-300 rounded-xl text-sm text-slate-900 appearance-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm dark:bg-slate-800/80 dark:border-white/10 dark:text-white dark:focus:border-blue-500/50 dark:shadow-inner"
+                                        >
+                                            {myLeaderTeams.map(t => (
+                                                <option key={t._id} value={t._id}>
+                                                    {t.name} ({t.hackathonId?.title || 'Hackathon'})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-500">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mb-8">
@@ -351,7 +443,7 @@ export default function Teams() {
                             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex gap-3 items-start shadow-sm dark:bg-blue-900/40 dark:border-blue-500/30 dark:shadow-[0_4px_15px_rgba(29,78,216,0.1)]">
                                 <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 shadow-sm dark:bg-blue-500 dark:shadow-[0_0_8px_rgba(59,130,246,0.8)]">i</div>
                                 <p className="text-[13px] text-blue-800 leading-relaxed font-medium dark:text-blue-200">
-                                    Sending an invitation will allow the user to view your team profile and project details. You'll be notified when they respond.
+                                    Sending an invitation adds an official team invite to their dashboard and notifies them in chat.
                                 </p>
                             </div>
                         </div>
@@ -364,25 +456,11 @@ export default function Teams() {
                                 Cancel
                             </button>
                             <button
-                                className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 shadow-sm transition-all text-center dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5"
-                                onClick={() => {
-                                    if (currentUser && selectedUser && socket) {
-                                        const sortedIds = [currentUser._id.toString(), selectedUser.id.toString()].sort();
-                                        const roomId = `${sortedIds[0]}-${sortedIds[1]}`;
-                                        socket.emit('send_message', {
-                                            roomId,
-                                            senderId: currentUser._id,
-                                            text: inviteMessage,
-                                            createdAt: new Date().toISOString()
-                                        });
-                                        toast.success("Invitation sent successfully!");
-                                    } else if (!socket) {
-                                        toast.error("Failed to connect to chat server. Please try again.");
-                                    }
-                                    setSelectedUser(null);
-                                }}
+                                className="flex-1 py-3.5 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-500 shadow-sm transition-all text-center dark:shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-0.5 disabled:opacity-50 disabled:pointer-events-none"
+                                onClick={handleSendInvite}
+                                disabled={sendingInvite || myLeaderTeams.length === 0}
                             >
-                                Send Invitation
+                                {sendingInvite ? 'Sending...' : 'Send Invitation'}
                             </button>
                         </div>
                     </div>

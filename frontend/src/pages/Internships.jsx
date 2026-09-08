@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import SkeletonCard from '../components/SkeletonCard';
 import { toast } from 'react-hot-toast';
 import { getInternships, applyToInternship, getInternshipApplicants, updateApplicationStatus } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -155,12 +156,24 @@ export default function Internships() {
 
                         {/* LISTINGS GRID */}
                         {loading ? (
-                            <div className="text-center py-20 text-slate-500 font-semibold bg-white rounded-3xl border border-gray-200 dark:bg-white/5 dark:border-white/10">
-                                Loading live internships...
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {[...Array(6)].map((_, i) => (
+                                    <SkeletonCard key={i} type="internship" />
+                                ))}
                             </div>
                         ) : filteredInternships.length === 0 ? (
-                            <div className="text-center py-20 text-slate-500 font-semibold bg-white rounded-3xl border border-gray-200 dark:bg-white/5 dark:border-white/10">
-                                No internships found matching your filters.
+                            <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl border border-gray-200 dark:border-white/10 p-10 max-w-lg mx-auto">
+                                <div className="text-5xl mb-4">💼</div>
+                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No Internships Found</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                    No opportunities match your current filters. Try changing your search or mode.
+                                </p>
+                                <button
+                                    onClick={() => { setSearch(''); setModeFilter(''); }}
+                                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-full transition shadow-sm"
+                                >
+                                    Reset Filters
+                                </button>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

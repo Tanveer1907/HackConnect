@@ -15,29 +15,37 @@ export default function Navbar() {
         const fetchNotifications = async () => {
             if (token && user) {
                 try {
-                    if (location.pathname === '/chat') {
-                        localStorage.setItem('lastChatVisit', Date.now().toString());
-                        setHasNotifications(false);
-                        return;
+                    const { getMyChats, getMyTeams, getMyTeamInvitations } = await import('../services/api');
+                    const [chatRes, teamsRes, invitesRes] = await Promise.all([
+                        getMyChats().catch(() => ({ data: [] })),
+                        getMyTeams().catch(() => ({ data: [] })),
+                        getMyTeamInvitations().catch(() => ({ data: [] }))
+                    ]);
+
+                    let hasUnread = false;
+                    if (location.pathname !== '/chat') {
+                        const lastVisit = parseInt(localStorage.getItem('lastChatVisit') || '0');
+                        if (chatRes.data && chatRes.data.length > 0) {
+                            hasUnread = chatRes.data.some(chat => {
+                                const lastMsg = chat.latestMessage;
+                                if (!lastMsg) return false;
+                                const isFromOthers = lastMsg.sender !== user._id && lastMsg.sender?._id !== user._id;
+                                const isNew = new Date(lastMsg.createdAt).getTime() > lastVisit;
+                                return isFromOthers && isNew;
+                            });
+                        }
                     }
 
-                    const { getMyChats } = await import('../services/api');
-                    const chatRes = await getMyChats();
-                    
-                    const lastVisit = parseInt(localStorage.getItem('lastChatVisit') || '0');
-                    
-                    if (chatRes.data && chatRes.data.length > 0) {
-                        const hasUnread = chatRes.data.some(chat => {
-                            const lastMsg = chat.latestMessage;
-                            if (!lastMsg) return false;
-                            
-                            const isFromOthers = lastMsg.sender !== user._id && lastMsg.sender?._id !== user._id;
-                            const isNew = new Date(lastMsg.createdAt).getTime() > lastVisit;
-                            
-                            return isFromOthers && isNew;
-                        });
-                        setHasNotifications(hasUnread);
-                    }
+                    // Check for team join requests (if user is team leader)
+                    const myLeaderRequestsCount = (teamsRes.data || []).reduce((total, team) => {
+                        const isLeader = (team.leaderId?._id || team.leaderId) === user._id;
+                        return isLeader ? total + (team.pendingRequests?.length || 0) : total;
+                    }, 0);
+
+                    // Check for pending team invitations for user
+                    const pendingInvitesCount = (invitesRes.data || []).length;
+
+                    setHasNotifications(hasUnread || myLeaderRequestsCount > 0 || pendingInvitesCount > 0);
                 } catch (err) {
                     console.error('Failed to fetch navbar notifications', err);
                 }

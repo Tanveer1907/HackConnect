@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getUserProfile, updateUserProfile } from '../services/api';
+import { getUserProfile, updateUserProfile, uploadUserAvatar } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 export default function EditProfile() {
     const navigate = useNavigate();
@@ -76,6 +77,34 @@ export default function EditProfile() {
         setFormData(prev => ({ ...prev, skills: updatedSkills }));
     };
 
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+    const handleAvatarFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            return toast.error('Please select an image file (PNG, JPG, WEBP)');
+        }
+
+        const uploadData = new FormData();
+        uploadData.append('avatar', file);
+
+        setUploadingAvatar(true);
+        try {
+            const res = await uploadUserAvatar(uploadData);
+            const newUrl = res.data.profileImage;
+            setFormData(prev => ({ ...prev, profileImage: newUrl }));
+            refreshProfile();
+            toast.success('Avatar updated successfully!');
+        } catch (err) {
+            console.error('Avatar upload failed:', err);
+            toast.error(err.response?.data?.message || 'Failed to upload image');
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
@@ -133,6 +162,51 @@ export default function EditProfile() {
                                 <h2 className="text-xl font-extrabold text-slate-900 mb-6 flex items-center gap-3 drop-shadow-sm dark:text-white">
                                     <span className="text-blue-600 dark:text-blue-400">👤</span> Personal Information
                                 </h2>
+
+                                {/* Avatar Upload Section */}
+                                <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 mb-6 border-b border-gray-100 dark:border-white/10">
+                                    <div className="w-24 h-24 rounded-2xl border-2 border-blue-500/30 overflow-hidden shrink-0 shadow-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative group">
+                                        {formData.profileImage ? (
+                                            <img src={formData.profileImage} alt="Profile Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-3xl font-extrabold text-white uppercase">
+                                                {formData.name ? formData.name.charAt(0) : 'U'}
+                                            </div>
+                                        )}
+                                        {uploadingAvatar && (
+                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center text-white text-xs font-bold">
+                                                Uploading...
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 space-y-2 text-center sm:text-left">
+                                        <h3 className="font-bold text-slate-900 dark:text-white text-base">Profile Picture</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            Upload a PNG, JPG, or WEBP image to display on your profile, navbar, and team cards.
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-3 pt-1 justify-center sm:justify-start">
+                                            <label className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-sm transition active:scale-95 inline-flex items-center gap-2">
+                                                <input
+                                                    type="file"
+                                                    accept="image/png, image/jpeg, image/webp"
+                                                    onChange={handleAvatarFileChange}
+                                                    disabled={uploadingAvatar}
+                                                    className="hidden"
+                                                />
+                                                {uploadingAvatar ? 'Uploading...' : '📁 Upload New Photo'}
+                                            </label>
+                                            {formData.profileImage && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData(prev => ({ ...prev, profileImage: '' }))}
+                                                    className="px-3 py-2 bg-slate-100 dark:bg-white/5 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 text-slate-600 dark:text-slate-400 text-xs font-semibold rounded-xl transition"
+                                                >
+                                                    Remove Photo
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>

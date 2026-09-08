@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getHackathons } from '../services/api';
+import SkeletonCard from '../components/SkeletonCard';
 
 export default function Hackathons() {
     const [hackathons, setHackathons] = useState([]);
@@ -150,8 +151,26 @@ export default function Hackathons() {
                     </div>
 
                     {/* Cards Grid */}
-                    {pageItems.length === 0 ? (
-                        <div className="text-center py-20 text-slate-500 font-medium dark:text-slate-400">No hackathons found for these filters.</div>
+                    {loading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => (
+                                <SkeletonCard key={i} type="hackathon" />
+                            ))}
+                        </div>
+                    ) : pageItems.length === 0 ? (
+                        <div className="text-center py-16 bg-white dark:bg-white/5 rounded-3xl border border-gray-100 dark:border-white/10 p-10 max-w-lg mx-auto">
+                            <div className="text-5xl mb-4">🏆</div>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">No Hackathons Found</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                                We couldn't find any hackathons matching your current filters.
+                            </p>
+                            <button
+                                onClick={() => { setMode('All'); setDomain(''); setSort('Recommended'); setPage(1); }}
+                                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-full transition shadow-sm"
+                            >
+                                Reset Filters
+                            </button>
+                        </div>
                     ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {pageItems.map((hackathon, i) => (

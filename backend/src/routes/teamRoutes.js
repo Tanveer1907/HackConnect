@@ -10,7 +10,11 @@ const {
     declineTeamRequest,
     leaveTeam,
     removeMember,
-    deleteTeam
+    deleteTeam,
+    inviteMember,
+    getMyInvitations,
+    acceptInvitation,
+    declineInvitation
 } = require('../controllers/teamController');
 
 // All team routes require authentication
@@ -24,6 +28,10 @@ router.post('/create', createTeam);
 // @desc    Get all teams the current user is part of
 router.get('/my-teams', getMyTeams);
 
+// @route   GET /api/team/my-invitations
+// @desc    Get all team invitations sent to the current user
+router.get('/my-invitations', getMyInvitations);
+
 // @route   GET /api/team/:id
 // @desc    Get team by ID
 router.get('/:id', getTeamById);
@@ -31,6 +39,18 @@ router.get('/:id', getTeamById);
 // @route   POST /api/team/:id/request
 // @desc    Send a request to join a team
 router.post('/:id/request', sendTeamRequest);
+
+// @route   POST /api/team/:id/invite
+// @desc    Invite a user to the team (leader only)
+router.post('/:id/invite', inviteMember);
+
+// @route   PUT /api/team/:id/accept-invitation
+// @desc    Accept a team invitation (invited user)
+router.put('/:id/accept-invitation', acceptInvitation);
+
+// @route   PUT /api/team/:id/decline-invitation
+// @desc    Decline a team invitation (invited user)
+router.put('/:id/decline-invitation', declineInvitation);
 
 // @route   PUT /api/team/:id/accept
 // @desc    Accept a user's request to join (leader only)

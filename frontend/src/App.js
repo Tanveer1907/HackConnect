@@ -53,8 +53,8 @@ const AppContent = () => {
       <ScrollToTop />
       <Navbar />
       <Routes>
-        {/* Public Landing Page - Always accessible */}
-        <Route path="/" element={<Home />} />
+        {/* Landing Page (Redirect to dashboard if already logged in) */}
+        <Route path="/" element={<PublicRoute><Home /></PublicRoute>} />
 
         {/* Auth Pages (Redirect to dashboard if already logged in) */}
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />

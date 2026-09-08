@@ -28,6 +28,12 @@ const teamSchema = new mongoose.Schema(
                 ref: 'User',
             }
         ],
+        invitations: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            }
+        ],
         status: {
             type: String,
             enum: ['Active', 'Full', 'Closed'],

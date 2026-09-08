@@ -21,6 +21,9 @@ export const resetPassword = (resetData) => api.post('/auth/reset-password', res
 export const getUserProfile = () => api.get('/users/profile');
 export const getUserProfileById = (id) => api.get(`/users/profile/${id}`);
 export const updateUserProfile = (profileData) => api.put('/users/profile', profileData);
+export const uploadUserAvatar = (formData) => api.post('/users/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+});
 export const getAllUsers = () => api.get('/users');
 
 // --- Hackathon Endpoints ---
@@ -49,6 +52,10 @@ export const createTeam = (teamData) => api.post('/team/create', teamData);
 export const getMyTeams = () => api.get('/team/my-teams');
 export const getTeamDetails = (id) => api.get(`/team/${id}`);
 export const sendTeamRequest = (teamId) => api.post(`/team/${teamId}/request`);
+export const inviteTeamMember = (teamId, data) => api.post(`/team/${teamId}/invite`, data);
+export const getMyTeamInvitations = () => api.get('/team/my-invitations');
+export const acceptTeamInvitation = (teamId) => api.put(`/team/${teamId}/accept-invitation`);
+export const declineTeamInvitation = (teamId) => api.put(`/team/${teamId}/decline-invitation`);
 export const acceptTeamRequest = (teamId, data) => api.put(`/team/${teamId}/accept`, data);
 export const declineTeamRequest = (teamId, data) => api.put(`/team/${teamId}/decline`, data);
 export const leaveTeam = (teamId) => api.put(`/team/${teamId}/leave`);

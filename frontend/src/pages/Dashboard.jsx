@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import HackathonCard from '../components/HackathonCard';
-import { getHackathons, getMyTeams, acceptTeamRequest, declineTeamRequest, leaveTeam, deleteTeam } from '../services/api';
+import { getHackathons, getMyTeams, acceptTeamRequest, declineTeamRequest, leaveTeam, deleteTeam, getMyTeamInvitations, acceptTeamInvitation, declineTeamInvitation } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
     const [hackathons, setHackathons] = useState([]);
     const [myTeams, setMyTeams] = useState([]);
+    const [myInvitations, setMyInvitations] = useState([]);
     const { user } = useAuth();
 
     const handleAccept = async (teamId, userId) => {
@@ -57,17 +58,45 @@ export default function Dashboard() {
         }
     };
 
+    const handleAcceptInvite = async (teamId) => {
+        try {
+            await acceptTeamInvitation(teamId);
+            toast.success("Joined team successfully!");
+            const [teamsRes, invitesRes] = await Promise.all([
+                getMyTeams().catch(() => ({ data: [] })),
+                getMyTeamInvitations().catch(() => ({ data: [] }))
+            ]);
+            setMyTeams(teamsRes.data);
+            setMyInvitations(invitesRes.data || []);
+        } catch (error) {
+            toast.error("Error accepting invite: " + (error.response?.data?.message || error.message));
+        }
+    };
+
+    const handleDeclineInvite = async (teamId) => {
+        try {
+            await declineTeamInvitation(teamId);
+            toast.success("Invitation declined.");
+            const invitesRes = await getMyTeamInvitations().catch(() => ({ data: [] }));
+            setMyInvitations(invitesRes.data || []);
+        } catch (error) {
+            toast.error("Error declining invite: " + (error.response?.data?.message || error.message));
+        }
+    };
+
     useEffect(() => {
         window.scrollTo(0, 0);
         const fetchDashboardData = async () => {
             try {
-                const [hackathonsRes, teamsRes] = await Promise.all([
+                const [hackathonsRes, teamsRes, invitesRes] = await Promise.all([
                     getHackathons().catch(() => ({ data: [] })),
-                    getMyTeams().catch(() => ({ data: [] }))
+                    getMyTeams().catch(() => ({ data: [] })),
+                    getMyTeamInvitations().catch(() => ({ data: [] }))
                 ]);
 
                 setHackathons(hackathonsRes.data);
                 setMyTeams(teamsRes.data);
+                setMyInvitations(invitesRes.data || []);
             } catch (err) {
                 console.error("Failed to fetch dashboard data", err);
             }
@@ -110,6 +139,64 @@ export default function Dashboard() {
                             <Link to="/complete-profile" className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap">
                                 Complete Profile
                             </Link>
+                        </div>
+                    )}
+
+                    {/* Team Invitations (Received by user) */}
+                    {myInvitations.length > 0 && (
+                        <div className="mb-8 bg-gradient-to-r from-blue-600/10 via-indigo-600/10 to-purple-600/10 rounded-3xl p-6 md:p-8 border border-blue-500/30 shadow-lg relative overflow-hidden backdrop-blur-md">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">✉️</span>
+                                    <div>
+                                        <h3 className="font-extrabold text-xl text-slate-900 dark:text-white">Team Invitations for You</h3>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">Team leaders have invited you to join their hackathon squad!</p>
+                                    </div>
+                                </div>
+                                <span className="px-3 py-1 bg-blue-600 text-white font-bold text-xs rounded-full shadow-sm">
+                                    {myInvitations.length} Pending
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {myInvitations.map(inv => (
+                                    <div key={inv._id} className="bg-white dark:bg-slate-900/90 p-5 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 font-bold flex items-center justify-center overflow-hidden shrink-0 border border-indigo-200 dark:border-indigo-500/30">
+                                                    {inv.leaderId?.profileImage ? (
+                                                        <img src={inv.leaderId.profileImage} alt={inv.leaderId.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        inv.leaderId?.name?.[0] || 'L'
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate">{inv.name}</h4>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400">By {inv.leaderId?.name || 'Team Leader'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <span className="text-[11px] font-semibold px-2 py-0.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 rounded-md inline-block">
+                                                    🎯 {inv.hackathonId?.title || 'Hackathon'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-white/10">
+                                            <button
+                                                onClick={() => handleAcceptInvite(inv._id)}
+                                                className="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-sm transition active:scale-95"
+                                            >
+                                                Accept
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeclineInvite(inv._id)}
+                                                className="flex-1 py-2 bg-slate-100 dark:bg-white/5 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 text-slate-600 dark:text-slate-400 font-bold text-xs rounded-xl transition"
+                                            >
+                                                Decline
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
