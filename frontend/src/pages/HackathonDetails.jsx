@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { getHackathonDetails, createTeam, sendTeamRequest, registerForHackathon } from '../services/api';
+import { getHackathonDetails, createTeam, sendTeamRequest, registerForHackathon, unregisterFromHackathon } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -13,20 +13,62 @@ export default function HackathonDetails() {
     const [joinTeamId, setJoinTeamId] = useState('');
     const [showCreateTeam, setShowCreateTeam] = useState(false);
     const [showJoinTeam, setShowJoinTeam] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
+    const [isUnregistering, setIsUnregistering] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleSoloRegister = async () => {
+    const isUserRegistered = Boolean(
+        hackathon?.registeredUsers?.some(
+            u => (u?._id || u?.id || u) === (user?._id || user?.id)
+        )
+    );
+
+    // Opens the official page and shows the confirmation popup
+    const handleOpenOfficialPageAndPrompt = () => {
+        if (!user) {
+            toast.error("Please log in to register and save this hackathon to your profile!");
+            return;
+        }
+
+        if (hackathon?.sourceUrl) {
+            window.open(hackathon.sourceUrl, '_blank', 'noopener,noreferrer');
+        }
+        setShowConfirmModal(true);
+    };
+
+    // Confirms that the user has indeed registered on the official website
+    const handleConfirmRegistration = async () => {
         setIsRegistering(true);
         try {
             await registerForHackathon(id);
-            toast.success("Successfully registered for this hackathon!");
-            const res = await getHackathonDetails(id);
-            setHackathon(res.data);
+            const updated = await getHackathonDetails(id);
+            setHackathon(updated.data);
+            setShowConfirmModal(false);
+            toast.success("Awesome! Registration confirmed on HackConnect. You can now build or join a squad!", { duration: 4000 });
         } catch (err) {
             toast.error(err.response?.data?.message || "Registration failed");
         } finally {
             setIsRegistering(false);
+        }
+    };
+
+    // Removes the hackathon from the user's registered list
+    const handleUnregister = async () => {
+        if (!window.confirm("Are you sure you want to remove this hackathon from your profile? You will no longer be listed as registered.")) {
+            return;
+        }
+
+        setIsUnregistering(true);
+        try {
+            await unregisterFromHackathon(id);
+            const updated = await getHackathonDetails(id);
+            setHackathon(updated.data);
+            toast.success("Hackathon removed from your registered list.");
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to remove hackathon");
+        } finally {
+            setIsUnregistering(false);
         }
     };
 
@@ -93,14 +135,64 @@ export default function HackathonDetails() {
                         <span className="text-lg">←</span> Back to Dashboard
                     </Link>
 
+                    {/* Registration Status Banner */}
+                    {isUserRegistered && (
+                        <div className="mb-6 p-5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/5 border border-emerald-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm backdrop-blur-md">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-11 h-11 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-extrabold text-xl shadow-md shrink-0">
+                                    ✓
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h4 className="font-extrabold text-emerald-950 dark:text-emerald-200 text-base">
+                                            You are Registered for this Hackathon!
+                                        </h4>
+                                        <span className="px-2.5 py-0.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider rounded-full shadow-sm">
+                                            Status: Registered ✅
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1">
+                                        Your registration is saved to your HackConnect dashboard. Form or join a squad below, or visit the official organizer portal.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                                {hackathon.sourceUrl && (
+                                    <a
+                                        href={hackathon.sourceUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition shadow-md inline-flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+                                    >
+                                        Official Portal ↗
+                                    </a>
+                                )}
+                                <button
+                                    onClick={handleUnregister}
+                                    disabled={isUnregistering}
+                                    className="px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition border border-red-200/60 dark:border-red-800/40"
+                                >
+                                    {isUnregistering ? 'Removing...' : 'Remove'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm transition-colors duration-300 dark:bg-white/5 dark:backdrop-blur-xl dark:border-white/10 dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]">
                         <div className="h-72 md:h-96 w-full relative group">
                             <img src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'} alt={hackathon.title} className="w-full h-full object-cover transition duration-700 group-hover:scale-105 opacity-90 dark:opacity-80" />
                             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/20 to-transparent dark:from-black/90 dark:via-gray-900/40"></div>
                             <div className="absolute bottom-8 left-8 right-8 text-white">
-                                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full mb-3 inline-block uppercase tracking-wider shadow-sm dark:bg-blue-500/80 dark:shadow-md">
-                                    {hackathon.domain}
-                                </span>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-full inline-block uppercase tracking-wider shadow-sm dark:bg-blue-500/80 dark:shadow-md">
+                                        {hackathon.domain}
+                                    </span>
+                                    {isUserRegistered && (
+                                        <span className="bg-emerald-600 text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-md flex items-center gap-1.5 backdrop-blur-md">
+                                            ✓ Registered
+                                        </span>
+                                    )}
+                                </div>
                                 <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2 drop-shadow-sm dark:drop-shadow-md">
                                     {hackathon.title}
                                 </h1>
@@ -116,14 +208,43 @@ export default function HackathonDetails() {
                                         <p className="font-extrabold text-xl text-gray-900 transition-colors duration-300 dark:text-white">{hackathon.prizePool || '$10,000'}</p>
                                     </div>
                                 </div>
-                                <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                                    <button 
-                                        onClick={handleSoloRegister}
-                                        disabled={isRegistering || hackathon.registeredUsers?.some(u => (u._id || u) === user?._id)}
-                                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/40 text-white font-bold rounded-xl shadow-md transition disabled:cursor-not-allowed"
-                                    >
-                                        {hackathon.registeredUsers?.some(u => (u._id || u) === user?._id) ? '✓ Registered' : isRegistering ? 'Registering...' : 'Register (Solo)'}
-                                    </button>
+                                <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
+                                    {isUserRegistered ? (
+                                        <>
+                                            <button 
+                                                disabled
+                                                className="px-5 py-3 bg-emerald-600/90 text-white font-extrabold rounded-xl shadow-md flex items-center gap-2 cursor-default"
+                                            >
+                                                <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+                                                ✓ Registered
+                                            </button>
+                                            {hackathon.sourceUrl && (
+                                                <a
+                                                    href={hackathon.sourceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-5 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition inline-flex items-center gap-2 active:scale-95"
+                                                >
+                                                    Official Page ↗
+                                                </a>
+                                            )}
+                                            <button 
+                                                onClick={handleUnregister}
+                                                disabled={isUnregistering}
+                                                className="px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:hover:bg-red-900/50 dark:text-red-400 font-bold text-xs rounded-xl border border-red-200/80 dark:border-red-800/50 transition active:scale-95"
+                                                title="Remove this hackathon from your profile"
+                                            >
+                                                {isUnregistering ? 'Removing...' : '✕ Remove'}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button 
+                                            onClick={handleOpenOfficialPageAndPrompt}
+                                            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-2 active:scale-95"
+                                        >
+                                            Register & Open Official Page ↗
+                                        </button>
+                                    )}
                                     <button 
                                         onClick={() => setShowCreateTeam(true)} 
                                         className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition"
@@ -319,6 +440,79 @@ export default function HackathonDetails() {
                                     Send Request
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* REGISTRATION CONFIRMATION MODAL */}
+            {showConfirmModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white dark:bg-[#0f172a] rounded-3xl border border-gray-200 dark:border-white/10 p-6 md:p-8 max-w-lg w-full shadow-2xl relative">
+                        <div className="flex justify-between items-start mb-5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-2xl shrink-0">
+                                    🚀
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                                        Did you register on the official page?
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                                        {hackathon.title}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowConfirmModal(false)}
+                                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-white/20 transition shrink-0"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className="space-y-3 mb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-white/5 p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                            <p>
+                                🌐 We opened the official organizer registration page in a new tab for you to submit your details.
+                            </p>
+                            <p className="font-semibold text-slate-900 dark:text-white text-xs">
+                                Once you have registered there, click <strong>"Yes, I've Registered"</strong> below so HackConnect records your registration, shows it on your dashboard, and unlocks team building!
+                            </p>
+                            {hackathon.sourceUrl && (
+                                <a
+                                    href={hackathon.sourceUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline pt-1"
+                                >
+                                    Didn't open? Click here to re-open official portal ↗
+                                </a>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setShowConfirmModal(false)}
+                                className="flex-1 py-3 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition"
+                            >
+                                Not Yet / Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmRegistration}
+                                disabled={isRegistering}
+                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-sm shadow-md transition flex items-center justify-center gap-2 active:scale-95 disabled:cursor-not-allowed"
+                            >
+                                {isRegistering ? (
+                                    <>
+                                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                                        Confirming...
+                                    </>
+                                ) : (
+                                    '✓ Yes, I\'ve Registered'
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>

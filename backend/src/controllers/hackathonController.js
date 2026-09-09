@@ -85,14 +85,55 @@ exports.registerForHackathon = async (req, res) => {
 
         const alreadyRegistered = hackathon.registeredUsers.some(id => id.toString() === userId);
         if (alreadyRegistered) {
-            return res.status(400).json({ message: 'You are already registered for this hackathon' });
+            return res.status(200).json({ 
+                message: 'You are already registered for this hackathon!', 
+                alreadyRegistered: true,
+                hackathon,
+                sourceUrl: hackathon.sourceUrl 
+            });
         }
 
         hackathon.registeredUsers.push(userId);
         hackathon.participantCount = (hackathon.participantCount || 0) + 1;
         await hackathon.save();
 
-        res.json({ message: 'Registered for hackathon successfully!', hackathon });
+        res.json({ 
+            message: 'Registered for hackathon successfully!', 
+            alreadyRegistered: false,
+            hackathon, 
+            sourceUrl: hackathon.sourceUrl 
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+exports.unregisterFromHackathon = async (req, res) => {
+    try {
+        const hackathonId = req.params.id;
+        const userId = req.user.user.id;
+
+        const hackathon = await Hackathon.findById(hackathonId);
+        if (!hackathon) {
+            return res.status(404).json({ message: 'Hackathon not found' });
+        }
+
+        const isRegistered = hackathon.registeredUsers.some(id => id.toString() === userId);
+        if (!isRegistered) {
+            return res.status(400).json({ message: 'You are not registered for this hackathon' });
+        }
+
+        hackathon.registeredUsers = hackathon.registeredUsers.filter(id => id.toString() !== userId);
+        if (hackathon.participantCount && hackathon.participantCount > 0) {
+            hackathon.participantCount -= 1;
+        }
+        await hackathon.save();
+
+        res.json({ 
+            message: 'Removed hackathon from your registered list successfully', 
+            hackathon 
+        });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server Error');

@@ -31,6 +31,7 @@ export const getHackathons = (query = '') => api.get(`/hackathons${query}`);
 export const getHackathonDetails = (id) => api.get(`/hackathons/${id}`);
 export const createHackathon = (data) => api.post('/hackathons', data);
 export const registerForHackathon = (id) => api.post(`/hackathons/${id}/register`);
+export const unregisterFromHackathon = (id) => api.post(`/hackathons/${id}/unregister`);
 export const submitHackathonProject = (id, data) => api.post(`/hackathons/${id}/submit`, data);
 
 // --- Internship Endpoints ---

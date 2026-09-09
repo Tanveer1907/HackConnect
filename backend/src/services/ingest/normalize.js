@@ -10,15 +10,18 @@ exports.normalizeHackathon = (raw) => {
         domain: raw.domain ? String(raw.domain).trim() : 'General',
         deadline: raw.deadline ? new Date(raw.deadline) : null,
         startDate: raw.startDate ? new Date(raw.startDate) : null,
-        mode: ['REMOTE', 'HYBRID', 'IN_OFFICE'].includes(String(raw.mode).toUpperCase()) 
-            ? String(raw.mode).toUpperCase() 
-            : 'REMOTE',
+        mode: (() => {
+            const m = String(raw.mode || '').toUpperCase();
+            if (m === 'OFFLINE' || m === 'IN_OFFICE') return 'OFFLINE';
+            if (m === 'HYBRID') return 'HYBRID';
+            return 'ONLINE';
+        })(),
         teamSize: parseInt(raw.teamSize) || 4,
         image: raw.image ? String(raw.image).trim() : 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800',
         prizePool: raw.prizePool ? String(raw.prizePool).trim() : 'Sponsored Prizes',
         sourceUrl: raw.sourceUrl ? String(raw.sourceUrl).trim() : null,
         participantCount: parseInt(raw.participantCount) || 0,
-        status: raw.status || 'pending' // Default ingested events to pending moderation
+        status: raw.status || 'live' // Default verified ingested events to live
     };
 };
 

@@ -2,14 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getHackathons } from '../services/api';
 import SkeletonCard from '../components/SkeletonCard';
+import { useAuth } from '../context/AuthContext';
 
 export default function Hackathons() {
+    const { user } = useAuth();
     const [hackathons, setHackathons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     const [mode, setMode] = useState('All');
     const [domain, setDomain] = useState('');
+    const [onlyRegistered, setOnlyRegistered] = useState(false);
     const [sort, setSort] = useState('Recommended');
     const [page, setPage] = useState(1);
     const PAGE_SIZE = 9;
@@ -39,7 +42,7 @@ export default function Hackathons() {
     // Reset to the first page whenever the result set or ordering changes
     useEffect(() => {
         setPage(1);
-    }, [mode, domain, sort]);
+    }, [mode, domain, sort, onlyRegistered]);
 
     if (loading) {
         return <div className="flex-1 flex justify-center items-center h-screen bg-slate-50 dark:bg-[#0f172a]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>;
@@ -55,9 +58,14 @@ export default function Hackathons() {
     const activeCount = hackathons.filter(h => h.deadline && new Date(h.deadline).getTime() >= now).length;
     const totalHackers = hackathons.reduce((sum, h) => sum + (h.participantCount || 0), 0);
 
-    // Sorting (client-side) + pagination
+    // Sorting & filtering (client-side) + pagination
     const parsePrize = (p) => parseInt(String(p || '').replace(/[^0-9]/g, ''), 10) || 0;
-    const sortedHackathons = [...hackathons].sort((a, b) => {
+    const filteredHackathons = hackathons.filter(h => {
+        if (!onlyRegistered) return true;
+        return h.registeredUsers?.some(u => (u?._id || u?.id || u) === (user?._id || user?.id));
+    });
+
+    const sortedHackathons = [...filteredHackathons].sort((a, b) => {
         if (sort === 'Newest') return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
         if (sort === 'Prize Pool') return parsePrize(b.prizePool) - parsePrize(a.prizePool);
         return 0; // Recommended = backend default order
@@ -65,6 +73,8 @@ export default function Hackathons() {
     const totalPages = Math.max(1, Math.ceil(sortedHackathons.length / PAGE_SIZE));
     const currentPage = Math.min(page, totalPages);
     const pageItems = sortedHackathons.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+    const myRegisteredCount = hackathons.filter(h => h.registeredUsers?.some(u => (u?._id || u?.id || u) === (user?._id || user?.id))).length;
 
     return (
         <div className="bg-slate-50 transition-colors duration-300 dark:bg-transparent flex-1 flex flex-col">
@@ -75,8 +85,22 @@ export default function Hackathons() {
                 <aside className="w-full md:w-[250px] shrink-0">
                     <div className="flex justify-between items-center mb-5">
                         <h3 className="text-base font-bold m-0 text-slate-900 drop-shadow-sm dark:text-white">Filters</h3>
-                        <span onClick={() => { setMode('All'); setDomain(''); }} className="text-blue-600 text-xs cursor-pointer hover:text-blue-800 transition-colors dark:text-blue-400 dark:hover:text-blue-300">Reset All</span>
+                        <span onClick={() => { setMode('All'); setDomain(''); setOnlyRegistered(false); }} className="text-blue-600 text-xs cursor-pointer hover:text-blue-800 transition-colors dark:text-blue-400 dark:hover:text-blue-300">Reset All</span>
                     </div>
+
+                    {user && (
+                        <div className="mb-6 p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl">
+                            <label className="flex items-center gap-2.5 text-xs font-bold text-emerald-900 dark:text-emerald-300 cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    checked={onlyRegistered} 
+                                    onChange={(e) => setOnlyRegistered(e.target.checked)} 
+                                    className="accent-emerald-600 w-4 h-4 cursor-pointer" 
+                                />
+                                Registered Only ({myRegisteredCount})
+                            </label>
+                        </div>
+                    )}
 
                     <div className="mb-8">
                         <h4 className="text-xs text-slate-500 uppercase tracking-widest mb-4 font-bold">Mode</h4>
@@ -173,56 +197,80 @@ export default function Hackathons() {
                         </div>
                     ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {pageItems.map((hackathon, i) => (
-                            <Link to={`/hackathon/${hackathon._id}`} key={hackathon._id} className="bg-white rounded-2xl overflow-hidden border border-gray-200 transition-all duration-300 cursor-pointer block hover:shadow-md hover:border-blue-300 hover:-translate-y-1 group shadow-sm dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20 no-underline">
-                                <div className="h-[160px] bg-slate-200 relative dark:bg-slate-800">
-                                    <img src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80" alt="Cover" />
-                                    <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-slate-700 border border-white hover:bg-white transition hover:scale-110 shadow-sm dark:bg-black/40 dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
-                                    </div>
-                                </div>
-                                <div className="p-5 flex flex-col h-[calc(100%-160px)]">
-                                    <div className="flex gap-2.5 mb-4 flex-wrap">
-                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode?.toUpperCase() === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode?.toUpperCase() === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
-                                            {hackathon.mode?.toUpperCase() === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode?.toUpperCase() === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
-                                        </span>
-                                        <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
-                                            👥 Team Size: {hackathon.teamSize || 4}
-                                        </span>
-                                        <span className="bg-indigo-50 text-indigo-600 border border-indigo-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
-                                            📌 {hackathon.domain || 'Tech'}
-                                        </span>
-                                    </div>
+                        {pageItems.map((hackathon, i) => {
+                            const isRegistered = Boolean(
+                                hackathon.registeredUsers?.some(
+                                    u => (u?._id || u?.id || u) === (user?._id || user?.id)
+                                )
+                            );
 
-                                    <h3 className="text-[18px] font-bold m-0 mb-2.5 text-slate-900 group-hover:text-blue-600 transition-colors drop-shadow-sm dark:text-white dark:group-hover:text-blue-400">{hackathon.title}</h3>
-                                    <p className="text-slate-600 text-[14px] leading-relaxed m-0 mb-5 h-[42px] overflow-hidden line-clamp-2 dark:text-slate-400">{hackathon.description}</p>
-
-                                    <div className="flex justify-between items-end mb-5 border-t border-gray-100 pt-4 mt-auto dark:border-white/10">
-                                        <div className="flex items-center gap-1.5">
-                                            <div className="flex -space-x-2">
-                                                <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-700 dark:border-slate-800">
-                                                    <img src={`https://i.pravatar.cc/150?u=${hackathon._id}a`} alt="u1" className="w-full h-full object-cover" />
-                                                </div>
-                                                <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-600 dark:border-slate-800">
-                                                    <img src={`https://i.pravatar.cc/150?u=${hackathon._id}b`} alt="u2" className="w-full h-full object-cover" />
-                                                </div>
+                            return (
+                                <Link to={`/hackathon/${hackathon._id}`} key={hackathon._id} className="bg-white rounded-2xl overflow-hidden border border-gray-200 transition-all duration-300 cursor-pointer block hover:shadow-md hover:border-blue-300 hover:-translate-y-1 group shadow-sm dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20 no-underline">
+                                    <div className="h-[160px] bg-slate-200 relative dark:bg-slate-800">
+                                        <img src={hackathon.image || '/assets/hackathons/default-hackathon.jpg'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80" alt="Cover" />
+                                        
+                                        {/* Registered Pill Badge on Image */}
+                                        {isRegistered && (
+                                            <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 backdrop-blur-md z-10">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                                                ✓ REGISTERED
                                             </div>
-                                            {hackathon.participantCount > 0 && (
-                                                <span className="text-slate-500 text-[12px] font-medium ml-1 dark:text-slate-400">+{hackathon.participantCount}</span>
+                                        )}
+
+                                        <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-md text-slate-700 border border-white hover:bg-white transition hover:scale-110 shadow-sm dark:bg-black/40 dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
+                                        </div>
+                                    </div>
+                                    <div className="p-5 flex flex-col h-[calc(100%-160px)]">
+                                        <div className="flex gap-2 mb-4 flex-wrap items-center">
+                                            {isRegistered && (
+                                                <span className="bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-[4px] tracking-[0.5px] shadow-sm">
+                                                    ✓ REGISTERED
+                                                </span>
                                             )}
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode?.toUpperCase() === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode?.toUpperCase() === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
+                                                {hackathon.mode?.toUpperCase() === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode?.toUpperCase() === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
+                                            </span>
+                                            <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
+                                                👥 Team Size: {hackathon.teamSize || 4}
+                                            </span>
+                                            <span className="bg-indigo-50 text-indigo-600 border border-indigo-200 text-[10px] font-bold px-2 py-1 rounded-[4px] tracking-[0.5px] shadow-sm dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30 dark:shadow-[0_0_5px_rgba(0,0,0,0.1)]">
+                                                📌 {hackathon.domain || 'Tech'}
+                                            </span>
                                         </div>
-                                        <div className="text-right">
-                                            <div className="text-[10px] text-slate-500 uppercase font-bold">DEADLINE</div>
-                                            <div className="text-[14px] font-bold text-red-600 drop-shadow-sm dark:text-red-400 dark:drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]">
-                                                {new Date(hackathon.deadline).toLocaleDateString()}
+
+                                        <h3 className="text-[18px] font-bold m-0 mb-2.5 text-slate-900 group-hover:text-blue-600 transition-colors drop-shadow-sm dark:text-white dark:group-hover:text-blue-400">{hackathon.title}</h3>
+                                        <p className="text-slate-600 text-[14px] leading-relaxed m-0 mb-5 h-[42px] overflow-hidden line-clamp-2 dark:text-slate-400">{hackathon.description}</p>
+
+                                        <div className="flex justify-between items-end mb-5 border-t border-gray-100 pt-4 mt-auto dark:border-white/10">
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="flex -space-x-2">
+                                                    <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-700 dark:border-slate-800">
+                                                        <img src={`https://i.pravatar.cc/150?u=${hackathon._id}a`} alt="u1" className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div className="w-6 h-6 bg-slate-200 rounded-full border-2 border-white shadow-sm overflow-hidden dark:bg-slate-600 dark:border-slate-800">
+                                                        <img src={`https://i.pravatar.cc/150?u=${hackathon._id}b`} alt="u2" className="w-full h-full object-cover" />
+                                                    </div>
+                                                </div>
+                                                {hackathon.participantCount > 0 && (
+                                                    <span className="text-slate-500 text-[12px] font-medium ml-1 dark:text-slate-400">+{hackathon.participantCount}</span>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-slate-500 uppercase font-bold">DEADLINE</div>
+                                                <div className="text-[14px] font-bold text-red-600 drop-shadow-sm dark:text-red-400 dark:drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]">
+                                                    {hackathon.deadline ? new Date(hackathon.deadline).toLocaleDateString() : 'Rolling'}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <button className="w-full py-2.5 bg-slate-50 border border-gray-200 text-slate-700 font-bold text-sm rounded-xl text-center group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent transition-all duration-300 shadow-sm group-hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:text-white dark:shadow-[0_4px_10px_rgba(0,0,0,0.1)] dark:group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]">View Details</button>
-                                </div>
-                            </Link>
-                        ))}
+                                        <button className={`w-full py-2.5 border font-bold text-sm rounded-xl text-center transition-all duration-300 shadow-sm ${isRegistered ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300' : 'bg-slate-50 border-gray-200 text-slate-700 group-hover:bg-blue-600 group-hover:text-white group-hover:border-transparent dark:bg-white/10 dark:border-white/20 dark:text-white dark:shadow-[0_4px_10px_rgba(0,0,0,0.1)] dark:group-hover:shadow-[0_0_15px_rgba(59,130,246,0.6)]'}`}>
+                                            {isRegistered ? '✓ Registered • View Details' : 'View Details & Register'}
+                                        </button>
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                     )}
 

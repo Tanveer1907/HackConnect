@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import HackathonCard from '../components/HackathonCard';
-import { getHackathons, getMyTeams, acceptTeamRequest, declineTeamRequest, leaveTeam, deleteTeam, getMyTeamInvitations, acceptTeamInvitation, declineTeamInvitation } from '../services/api';
+import { getHackathons, getMyTeams, acceptTeamRequest, declineTeamRequest, leaveTeam, deleteTeam, getMyTeamInvitations, acceptTeamInvitation, declineTeamInvitation, unregisterFromHackathon } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,25 @@ export default function Dashboard() {
     const [myTeams, setMyTeams] = useState([]);
     const [myInvitations, setMyInvitations] = useState([]);
     const { user } = useAuth();
+
+    const handleRemoveRegistered = async (hackathonId) => {
+        if (!window.confirm("Are you sure you want to remove this hackathon from your profile?")) return;
+        try {
+            await unregisterFromHackathon(hackathonId);
+            toast.success("Hackathon removed from your registered list.");
+            setHackathons(prev => prev.map(h => {
+                if ((h._id || h.id) === hackathonId) {
+                    return {
+                        ...h,
+                        registeredUsers: (h.registeredUsers || []).filter(u => (u?._id || u?.id || u) !== (user?._id || user?.id))
+                    };
+                }
+                return h;
+            }));
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to remove hackathon");
+        }
+    };
 
     const handleAccept = async (teamId, userId) => {
         try {
@@ -112,6 +131,10 @@ export default function Dashboard() {
             const leaderId = team.leaderId?._id || team.leaderId;
             return leaderId === user?._id && team.pendingRequests?.length > 0;
         }
+    );
+
+    const myRegisteredHackathons = hackathons.filter(h =>
+        h.registeredUsers?.some(u => (u?._id || u?.id || u) === (user?._id || user?.id))
     );
 
     return (
@@ -292,6 +315,57 @@ export default function Dashboard() {
                             )}
                         </div>
                     </div>
+
+                    {/* My Registered Hackathons */}
+                    {myRegisteredHackathons.length > 0 && (
+                        <div className="mb-12 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent p-6 md:p-8 rounded-3xl border border-emerald-500/20 backdrop-blur-md">
+                            <div className="flex justify-between items-center mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                                        🎟️
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-extrabold text-slate-900 drop-shadow-sm dark:text-white">
+                                            My Registered Hackathons
+                                        </h2>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            Competitions you have registered for on HackConnect
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className="px-3 py-1 bg-emerald-600 text-white font-extrabold text-xs rounded-full shadow-sm">
+                                    {myRegisteredHackathons.length} Active
+                                </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {myRegisteredHackathons.map((hackathon) => (
+                                    <div key={hackathon.id || hackathon._id} className="flex flex-col">
+                                        <HackathonCard hackathon={hackathon} />
+                                        <div className="mt-2 flex justify-between items-center px-1">
+                                            {hackathon.sourceUrl && (
+                                                <a
+                                                    href={hackathon.sourceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                                                >
+                                                    Official Portal ↗
+                                                </a>
+                                            )}
+                                            <button
+                                                onClick={() => handleRemoveRegistered(hackathon._id || hackathon.id)}
+                                                className="text-xs font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 py-1 px-2.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition ml-auto flex items-center gap-1"
+                                                title="Remove this hackathon from your profile"
+                                            >
+                                                ✕ Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="flex justify-between items-end mb-8 mt-4">
                         <h2 className="text-2xl font-extrabold text-slate-900 drop-shadow-sm dark:text-white">Upcoming Hackathons</h2>

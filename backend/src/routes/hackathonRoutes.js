@@ -23,6 +23,12 @@ router.get('/:id', hackathonController.getHackathonById);
 // @access  Private
 router.post('/:id/register', auth, hackathonController.registerForHackathon);
 
+// @route   POST api/hackathons/:id/unregister or DELETE api/hackathons/:id/register
+// @desc    Unregister / remove hackathon from user profile
+// @access  Private
+router.post('/:id/unregister', auth, hackathonController.unregisterFromHackathon);
+router.delete('/:id/register', auth, hackathonController.unregisterFromHackathon);
+
 // @route   POST api/hackathons/:id/submit
 // @desc    Submit a project to a hackathon
 // @access  Private

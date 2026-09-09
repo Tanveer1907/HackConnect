@@ -1,7 +1,21 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function HackathonCard({ hackathon }) {
+    const { user } = useAuth();
+    const isRegistered = Boolean(
+        hackathon.registeredUsers?.some(
+            u => (u?._id || u?.id || u) === (user?._id || user?.id)
+        )
+    );
+
+    const deadlineStr = hackathon.deadline 
+        ? (typeof hackathon.deadline === 'string' && hackathon.deadline.includes('Days') 
+            ? hackathon.deadline 
+            : new Date(hackathon.deadline).toLocaleDateString()) 
+        : 'Rolling';
+
     return (
         <Link to={`/hackathon/${hackathon._id || hackathon.id || 1}`} className="block bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all duration-300 hover:-translate-y-1 group dark:bg-white/5 dark:backdrop-blur-md dark:border-white/10 dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] dark:hover:border-white/20">
             <div className="h-44 bg-gray-100 relative dark:bg-slate-800">
@@ -10,18 +24,27 @@ export default function HackathonCard({ hackathon }) {
                     className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 dark:opacity-80"
                     alt={hackathon.title}
                 />
+                
+                {/* Registered Badge */}
+                {isRegistered && (
+                    <div className="absolute top-4 left-4 bg-emerald-600 text-white text-[10px] font-black px-3 py-1 rounded-full shadow-lg flex items-center gap-1.5 backdrop-blur-md z-10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                        ✓ REGISTERED
+                    </div>
+                )}
+
                 <div className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-800 border border-gray-200 hover:bg-gray-50 transition hover:scale-110 shadow-sm dark:bg-black/40 dark:backdrop-blur-md dark:text-white dark:border-white/20 dark:hover:bg-white/20 dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg>
                 </div>
-                {hackathon.deadline.includes('Days') && (
-                    <div className="absolute top-4 right-14 bg-white border border-gray-200 text-slate-800 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm drop-shadow-sm dark:bg-white/10 dark:backdrop-blur-md dark:border-white/20 dark:text-white dark:drop-shadow-md">
-                        In {parseInt(hackathon.deadline)} days
-                    </div>
-                )}
             </div>
 
             <div className="p-6 flex flex-col h-[calc(100%-11rem)]">
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-4 items-center">
+                    {isRegistered && (
+                        <span className="bg-emerald-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-md tracking-wide shadow-sm">
+                            ✓ REGISTERED
+                        </span>
+                    )}
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md tracking-wide border shadow-sm dark:shadow-[0_0_5px_rgba(0,0,0,0.1)] ${hackathon.mode === 'ONLINE' ? 'bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200 dark:bg-fuchsia-500/20 dark:text-fuchsia-300 dark:border-fuchsia-500/30' : (hackathon.mode === 'HYBRID' ? 'bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30' : 'bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30')}`}>
                         {hackathon.mode === 'ONLINE' ? '🌐 ONLINE' : hackathon.mode === 'HYBRID' ? '🏙️ HYBRID' : '🏢 OFFLINE'}
                     </span>

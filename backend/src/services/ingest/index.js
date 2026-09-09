@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { fetchDevpostHackathons } = require('./adapters/devpost');
 const { fetchMlhHackathons } = require('./adapters/mlh');
+const { fetchBrabbleHackathons } = require('./adapters/brabble');
 const { fetchInternships } = require('./adapters/internships');
 const { normalizeHackathon, normalizeInternship } = require('./normalize');
 const { upsertHackathons, upsertInternships } = require('./dedupe');
@@ -11,7 +12,18 @@ const { upsertHackathons, upsertInternships } = require('./dedupe');
 const runSync = async () => {
     console.log('=== [Ingestion Engine] Starting Synchronization Cycle ===');
     
-    // 1. Process Hackathons (Devpost)
+    // 1. Process Hackathons (Brabble: Unstop, Devfolio, Devpost, MLH, etc.)
+    try {
+        const rawBrabble = await fetchBrabbleHackathons(100);
+        if (rawBrabble && rawBrabble.length > 0) {
+            const normalizedBrabble = rawBrabble.map(normalizeHackathon);
+            await upsertHackathons(normalizedBrabble);
+        }
+    } catch (err) {
+        console.error(`[Ingestion Engine] Brabble Sync failed: ${err.message}`);
+    }
+
+    // 2. Process Hackathons (Devpost Direct Fallback)
     try {
         const rawDevpost = await fetchDevpostHackathons();
         const normalizedDevpost = rawDevpost.map(normalizeHackathon);
@@ -20,7 +32,7 @@ const runSync = async () => {
         console.error(`[Ingestion Engine] Devpost Sync failed: ${err.message}`);
     }
 
-    // 2. Process Hackathons (MLH)
+    // 3. Process Hackathons (MLH Fallback)
     try {
         const rawMlh = await fetchMlhHackathons();
         const normalizedMlh = rawMlh.map(normalizeHackathon);
